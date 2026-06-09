@@ -5,6 +5,14 @@ const e = window.React.createElement;
 function MonetizationDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Your 4 active programs configured with matching icons in a strict black & white theme
+  const activeProgramsList = [
+    { id: 'live', title: 'LIVE rewards', icon: 'gift-outline' },
+    { id: 'tips', title: 'Sub Tips', icon: 'cash-outline' },
+    { id: 'tasks', title: 'Task Rewards', icon: 'checkbox-outline' },
+    { id: 'creator', title: 'Creator Rewards', icon: 'trophy-outline' }
+  ];
+
   return e('div', { className: 'min-h-screen bg-[#F8F8FA] text-[#121212] max-w-md mx-auto relative shadow-md' },
     
     // --- SIDEBAR OVERLAY & MENU ---
@@ -76,14 +84,22 @@ function MonetizationDashboard() {
         )
       ),
 
-      // Active Programs
+      // --- COMPLETE ACTIVE PROGRAMS SECTION ---
       e('div', { className: 'bg-white rounded-2xl p-4 shadow-sm' },
-        e('h2', { className: 'text-[16px] font-bold mb-3.5' }, 'Active programs'),
-        e('div', { className: 'flex flex-col items-start' },
-          e('div', { className: 'w-14 h-14 bg-[#F8F8FA] rounded-2xl flex items-center justify-center mb-2' },
-            e('ion-icon', { name: 'gift-outline', style: { fontSize: '24px' } })
-          ),
-          e('span', { className: 'text-[12px] font-bold' }, 'LIVE rewards')
+        e('h2', { className: 'text-[16px] font-bold mb-4' }, 'Active programs'),
+        
+        // Horizontal sliding container
+        e('div', { className: 'flex items-start space-x-5 overflow-x-auto pb-2 scrollbar-none' },
+          activeProgramsList.map((program) => (
+            e('div', { key: program.id, className: 'flex flex-col items-center text-center min-w-[76px] cursor-pointer' },
+              // Uniform soft grey squircle matching original style
+              e('div', { className: 'w-14 h-14 bg-[#F8F8FA] rounded-2xl flex items-center justify-center mb-2 active:bg-gray-100 transition-colors' },
+                // Strict black icon styling enforced (#121212)
+                e('ion-icon', { name: program.icon, style: { fontSize: '24px', color: '#121212' } })
+              ),
+              e('span', { className: 'text-[11px] font-bold text-[#121212] leading-tight max-w-[80px] break-words' }, program.title)
+            )
+          ))
         )
       ),
 
