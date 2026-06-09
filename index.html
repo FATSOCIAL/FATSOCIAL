@@ -4,13 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FATSOCIAL Dashboard</title>
-    <!-- Dynamic Tailwind CSS Play CDN for fast loading -->
+    
+    <!-- 1. Tailwind CSS for Styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Ionicons Script for layout iconography -->
+    
+    <!-- 2. Core React Production Engines (No external imports needed) -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- 3. Ionicons for Icons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
   </head>
   <body class="bg-[#F8F8FA]">
     <div id="root"></div>
-    <script type="module" src="/main.js"></script>
+    
+    <!-- Load the main code engine -->
+    <script src="./main.js"></script>
   </body>
 </html>
