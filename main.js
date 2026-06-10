@@ -11,7 +11,6 @@ function App() {
   // Layout & Form Controller States
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isTopUpOpen, setIsTopUpOpen] = useState(false);
-  const [isCreatorPaymentOpen, setIsCreatorPaymentOpen] = useState(false); // Controls the Bitcoin payment box
   const [unlockedCreators, setUnlockedCreators] = useState(() => JSON.parse(localStorage.getItem('fatsocial_unlocked')) || []);
   const [subscribedCreators, setSubscribedCreators] = useState(() => JSON.parse(localStorage.getItem('fatsocial_subs')) || []);
   const [fullName, setFullName] = useState('');
@@ -44,19 +43,18 @@ function App() {
     navigateTo('landing');
   };
 
-  // Validates form input first before showing the Bitcoin instructions
+  // Validates form input first before sending user to the payment screen
   const triggerCreatorPaymentModal = () => {
     if (!fullName || !email || !password) {
       setErrorMessage('Please fill out all required setup fields.');
       return;
     }
     setErrorMessage('');
-    setIsCreatorPaymentOpen(true);
+    navigateTo('payment_creator');
   };
 
   // Executed when the user clicks the "PAID" button inside the instruction box
   const handleConfirmCreatorPayment = () => {
-    setIsCreatorPaymentOpen(false);
     setUserRole('creator');
     navigateTo('dashboard');
   };
@@ -229,37 +227,39 @@ function App() {
           e('span', { className: 'text-sm font-black text-[#121212]' }, '$25.00')
         ]),
         e('button', { key: 'pay-btn', onClick: triggerCreatorPaymentModal, className: 'w-full bg-[#121212] text-white font-bold py-4 rounded-xl text-sm shadow-sm active:scale-[0.99] transition-transform' }, 'Pay Fee & Deploy Profile')
-      ]),
+      ])
+    ]);
+  }
 
-      // Bitcoin Instruction Modal Box Overlay
-      isCreatorPaymentOpen && e('div', { key: 'pay-modal', className: 'fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 max-w-md mx-auto' }, [
-        e('div', { className: 'bg-white w-full rounded-2xl p-6 shadow-xl space-y-4 border border-gray-100 text-center' }, [
-          e('div', { className: 'w-12 h-12 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto' }, 
-            e('ion-icon', { name: 'logo-bitcoin', style: { fontSize: '28px' } })
-          ]),
-          e('div', null, [
-            e('h3', { className: 'font-black text-lg text-gray-900' }, 'Bitcoin Deposit Required'),
-            e('p', { className: 'text-xs text-gray-400 mt-1 px-2' }, 'Send exactly $25.00 worth of BTC to the official application network address below to activate your premium workspace.')
-          ]),
-          
-          e('div', { className: 'bg-[#F8F8FA] p-3.5 rounded-xl border border-gray-200/60 text-left' }, [
-            e('span', { className: 'block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1' }, 'BTC Network Address'),
-            e('div', { className: 'flex items-center justify-between' }, [
-              e('span', { className: 'text-xs font-mono font-bold text-gray-800 block truncate pr-2 select-all' }, 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh'),
-              e('button', { onClick: () => alert('Address copied to clipboard!'), className: 'text-gray-400 active:text-gray-900' }, e('ion-icon', { name: 'copy-outline' }))
-            ])
-          ]),
-
-          e('div', { className: 'space-y-2 pt-2' }, [
-            e('button', { 
-              onClick: handleConfirmCreatorPayment, 
-              className: 'w-full bg-emerald-500 text-white font-bold py-3.5 rounded-xl text-xs uppercase tracking-wide shadow-md shadow-emerald-500/10 active:scale-[0.98] transition-transform' 
-            }, 'PAID'),
-            e('button', { 
-              onClick: () => setIsCreatorPaymentOpen(false), 
-              className: 'w-full bg-transparent text-gray-400 font-bold py-2 rounded-xl text-xs active:text-gray-600' 
-            }, 'Cancel Payment')
+  // 4B. Standalone Creator Bitcoin Payment Screen (Fixed Route Layout)
+  if (currentPage === 'payment_creator') {
+    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col justify-center p-6 shadow-md' }, [
+      e('div', { className: 'bg-white w-full rounded-2xl space-y-5 text-center' }, [
+        e('div', { className: 'w-14 h-14 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto shadow-sm' }, 
+          e('ion-icon', { name: 'logo-bitcoin', style: { fontSize: '32px' } })
+        ]),
+        e('div', null, [
+          e('h3', { className: 'font-black text-xl text-gray-900 tracking-tight' }, 'Bitcoin Deposit Required'),
+          e('p', { className: 'text-xs text-gray-400 mt-1.5 px-4 leading-relaxed' }, 'Send exactly $25.00 worth of BTC to the official application network address below to activate your premium workspace.')
+        ]),
+        
+        e('div', { className: 'bg-[#F8F8FA] p-4 rounded-xl border border-gray-200/60 text-left' }, [
+          e('span', { className: 'block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1' }, 'BTC Network Address'),
+          e('div', { className: 'flex items-center justify-between' }, [
+            e('span', { className: 'text-xs font-mono font-bold text-gray-800 block truncate pr-3 select-all' }, 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh'),
+            e('button', { onClick: () => alert('Address copied to clipboard!'), className: 'text-gray-400 active:text-gray-900' }, e('ion-icon', { name: 'copy-outline', style: { fontSize: '16px' } }))
           ])
+        ]),
+
+        e('div', { className: 'space-y-2 pt-4' }, [
+          e('button', { 
+            onClick: handleConfirmCreatorPayment, 
+            className: 'w-full bg-emerald-500 text-white font-bold py-4 rounded-xl text-xs uppercase tracking-wide shadow-md active:scale-[0.98] transition-transform' 
+          }, 'PAID'),
+          e('button', { 
+            onClick: () => navigateTo('signup_creator'), 
+            className: 'w-full bg-transparent text-gray-400 font-bold py-2 rounded-xl text-xs active:text-gray-600' 
+          }, 'Cancel Payment')
         ])
       ])
     ]);
