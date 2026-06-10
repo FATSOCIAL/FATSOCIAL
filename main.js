@@ -11,7 +11,7 @@ function App() {
   // Layout & Form Controller States
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isTopUpOpen, setIsTopUpOpen] = useState(false);
-  const [isCreatorPaymentOpen, setIsCreatorPaymentOpen] = useState(false); // Controls the new Bitcoin payment box
+  const [isCreatorPaymentOpen, setIsCreatorPaymentOpen] = useState(false); // Controls the Bitcoin payment box
   const [unlockedCreators, setUnlockedCreators] = useState(() => JSON.parse(localStorage.getItem('fatsocial_unlocked')) || []);
   const [subscribedCreators, setSubscribedCreators] = useState(() => JSON.parse(localStorage.getItem('fatsocial_subs')) || []);
   const [fullName, setFullName] = useState('');
@@ -106,7 +106,7 @@ function App() {
     setSubscribedCreators(prev => [...prev, creatorId]);
   };
 
-  // Mock Content Storage 
+  // Data Arrays Declared Before UI Compiling
   const sampleCreators = [
     { id: 'c1', name: 'Alex Rivers', skill: 'UI/UX Mobile Architect', bio: 'Full scale vector kits and design engineering systems.', post: 'Just finished editing the UI configuration pipeline asset maps. Full rights packages opening soon.' },
     { id: 'c2', name: 'Elena Rostova', skill: 'Brand Identity Expert', bio: 'Premium visual brand systems, strategy, and layout schemes.', post: 'Showcasing the production draft layout for the dual marketplace core engine. Check out my catalog.' }
@@ -119,117 +119,120 @@ function App() {
     { id: 'p4', title: 'Creator Rewards', icon: 'cash-outline' }
   ];
 
-  // --- SCREEN 1: LANDING ENTRYWAY ---
+  // --- SCREEN RENDERING LAYER CONTROLLER ---
+  
+  // 1. Landing View
   if (currentPage === 'landing') {
-    return e('div', { className: 'min-h-screen bg-[#121212] text-white max-w-md mx-auto flex flex-col justify-between p-6 shadow-md relative' },
-      e('div', { className: 'flex-1 flex flex-col justify-center items-center text-center space-y-5' },
-        e('div', { className: 'w-16 h-16 bg-white text-[#121212] rounded-2xl flex items-center justify-center shadow-md' },
+    return e('div', { className: 'min-h-screen bg-[#121212] text-white max-w-md mx-auto flex flex-col justify-between p-6 shadow-md relative' }, [
+      e('div', { key: 'hero', className: 'flex-1 flex flex-col justify-center items-center text-center space-y-5' }, [
+        e('div', { key: 'logo', className: 'w-16 h-16 bg-white text-[#121212] rounded-2xl flex items-center justify-center shadow-md' },
           e('ion-icon', { name: 'flash', style: { fontSize: '36px' } })
         ),
-        e('h1', { className: 'text-3xl font-black tracking-tight' }, 'FATSOCIAL'),
-        e('p', { className: 'text-xs text-gray-400 max-w-xs leading-relaxed' }, 'Connect directly with premium elite skills marketplaces. Build career rewards as a creator or purchase specialized assets as an expert viewer.')
-      ),
-      e('div', { className: 'space-y-3 pb-6' },
-        e('button', { onClick: () => navigateTo('choose_track'), className: 'w-full bg-white text-[#121212] font-bold py-4 rounded-xl text-sm transition-all' }, 'Create Account'),
-        e('button', { onClick: () => navigateTo('signin'), className: 'w-full bg-transparent border border-white/20 font-bold py-4 rounded-xl text-sm text-white transition-all' }, 'Sign In Account')
-      )
-    );
+        e('h1', { key: 'title', className: 'text-3xl font-black tracking-tight' }, 'FATSOCIAL'),
+        e('p', { key: 'desc', className: 'text-xs text-gray-400 max-w-xs leading-relaxed' }, 'Connect directly with premium elite skills marketplaces. Build career rewards as a creator or purchase specialized assets as an expert viewer.')
+      ]),
+      e('div', { key: 'actions', className: 'space-y-3 pb-6' }, [
+        e('button', { key: 'btn-up', onClick: () => navigateTo('choose_track'), className: 'w-full bg-white text-[#121212] font-bold py-4 rounded-xl text-sm transition-all' }, 'Create Account'),
+        e('button', { key: 'btn-in', onClick: () => navigateTo('signin'), className: 'w-full bg-transparent border border-white/20 font-bold py-4 rounded-xl text-sm text-white transition-all' }, 'Sign In Account')
+      ])
+    ]);
   }
 
-  // --- SCREEN 2: DUAL TRACK PICKER ---
+  // 2. Track Selector View
   if (currentPage === 'choose_track') {
-    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' },
-      e('button', { onClick: () => navigateTo('landing'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6' }, 
+    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' }, [
+      e('button', { key: 'back', onClick: () => navigateTo('landing'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6' }, [
         e('ion-icon', { name: 'arrow-back-outline', style: { marginRight: '4px' } }), 'BACK'
-      ),
-      e('h2', { className: 'text-2xl font-black tracking-tight mb-2' }, 'Choose Account Type'),
-      e('p', { className: 'text-xs text-gray-400 mb-6' }, 'Select the customized interface suited for your platform profile.'),
-      e('div', { className: 'space-y-4 flex-1' },
+      ]),
+      e('h2', { key: 'title', className: 'text-2xl font-black tracking-tight mb-2' }, 'Choose Account Type'),
+      e('p', { key: 'subtitle', className: 'text-xs text-gray-400 mb-6' }, 'Select the customized interface suited for your platform profile.'),
+      e('div', { key: 'options', className: 'space-y-4 flex-1' }, [
         e('div', { 
+          key: 'opt-creator',
           onClick: () => navigateTo('signup_creator'),
           className: 'border-2 border-[#121212] p-5 rounded-2xl cursor-pointer hover:bg-gray-50 transition-all'
         }, [
-          e('div', { className: 'flex items-center space-x-3 mb-2' }, [
+          e('div', { key: 'h', className: 'flex items-center space-x-3 mb-2' }, [
             e('ion-icon', { name: 'trophy-outline', style: { fontSize: '24px', color: '#121212' } }),
             e('h3', { className: 'font-bold text-base' }, 'Content Creator Career')
           ]),
-          e('p', { className: 'text-xs text-gray-500 leading-relaxed' }, 'Access analytics dashboards, earn system payouts via tasks, design premium subscriptions, and monetize tools.')
+          e('p', { key: 'p', className: 'text-xs text-gray-500 leading-relaxed' }, 'Access analytics dashboards, earn system payouts via tasks, design premium subscriptions, and monetize tools.')
         ]),
         e('div', { 
+          key: 'opt-viewer',
           onClick: () => navigateTo('signup_viewer'),
           className: 'border border-gray-200 p-5 rounded-2xl cursor-pointer hover:border-[#121212] transition-all'
         }, [
-          e('div', { className: 'flex items-center space-x-3 mb-2' }, [
+          e('div', { key: 'h', className: 'flex items-center space-x-3 mb-2' }, [
             e('ion-icon', { name: 'eye-outline', style: { fontSize: '24px', color: '#121212' } }),
             e('h3', { className: 'font-bold text-base' }, 'General Consumer / Viewer')
           ]),
-          e('p', { className: 'text-xs text-gray-500 leading-relaxed' }, 'Discover professional skills showcase pools, purchase usage rights licenses, follow creators, send media content gifts, or send direct tips using system tokens.')
+          e('p', { key: 'p', className: 'text-xs text-gray-500 leading-relaxed' }, 'Discover professional skills showcase pools, purchase usage rights licenses, follow creators, send media content gifts, or send direct tips using system tokens.')
         ])
-      )
-    );
+      ])
+    ]);
   }
 
-  // --- SCREEN 3: SIGN IN PORTAL ---
+  // 3. Sign In Portal
   if (currentPage === 'signin') {
-    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' },
-      e('button', { onClick: () => navigateTo('landing'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6' }, 
+    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' }, [
+      e('button', { key: 'back', onClick: () => navigateTo('landing'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6' }, [
         e('ion-icon', { name: 'arrow-back-outline', style: { marginRight: '4px' } }), 'BACK'
-      ),
-      e('h2', { className: 'text-2xl font-black tracking-tight mb-6' }, 'Welcome Back'),
-      errorMessage && e('div', { className: 'bg-red-50 text-red-600 text-xs font-semibold p-3.5 rounded-xl mb-4' }, errorMessage),
-      e('div', { className: 'space-y-4 flex-1' }, [
-        e('div', null, [
+      ]),
+      e('h2', { key: 'title', className: 'text-2xl font-black tracking-tight mb-6' }, 'Welcome Back'),
+      errorMessage && e('div', { key: 'err', className: 'bg-red-50 text-red-600 text-xs font-semibold p-3.5 rounded-xl mb-4' }, errorMessage),
+      e('div', { key: 'fields', className: 'space-y-4 flex-1' }, [
+        e('div', { key: 'f-email' }, [
           e('label', { className: 'block text-xs font-bold text-gray-400 uppercase mb-2 tracking-wider' }, 'Account Email'),
           e('input', { type: 'email', value: email, onChange: e => setEmail(e.target.value), placeholder: 'name@example.com', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] border border-gray-100 rounded-xl focus:outline-none text-sm font-medium' })
         ]),
-        e('div', null, [
+        e('div', { key: 'f-pass' }, [
           e('label', { className: 'block text-xs font-bold text-gray-400 uppercase mb-2 tracking-wider' }, 'Password'),
           e('div', { className: 'relative' }, [
             e('input', { type: showPassword ? 'text' : 'password', value: password, onChange: e => setPassword(e.target.value), placeholder: 'Enter password', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] border border-gray-100 rounded-xl focus:outline-none text-sm font-medium pr-12' }),
             e('button', { onClick: () => setShowPassword(!showPassword), className: 'absolute right-4 top-1/2 -translate-y-1/2 text-gray-400' }, e('ion-icon', { name: showPassword ? 'eye-off-outline' : 'eye-outline' }))
           ])
         ]),
-        e('button', { onClick: handleAuthViewer, className: 'w-full bg-[#121212] text-white font-bold py-4 rounded-xl text-sm mt-4 shadow-sm' }, 'Sign In Account')
+        e('button', { key: 'submit', onClick: handleAuthViewer, className: 'w-full bg-[#121212] text-white font-bold py-4 rounded-xl text-sm mt-4 shadow-sm' }, 'Sign In Account')
       ])
-    );
+    ]);
   }
 
-  // --- SCREEN 4: CREATOR SIGNUP (MATCHING image_5.png ENGINE) ---
+  // 4. Creator Signup Portal
   if (currentPage === 'signup_creator') {
     return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md relative' }, [
-      e('button', { onClick: () => navigateTo('choose_track'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6' }, 
+      e('button', { key: 'back', onClick: () => navigateTo('choose_track'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6' }, [
         e('ion-icon', { name: 'arrow-back-outline', style: { marginRight: '4px' } }), 'BACK'
-      ),
-      e('h2', { className: 'text-2xl font-black tracking-tight mb-1' }, 'Setup Career Profile'),
-      e('p', { className: 'text-xs text-gray-400 mb-6' }, 'Register verified access handles to active task payouts.'),
-      errorMessage && e('div', { className: 'bg-red-50 text-red-600 text-xs font-semibold p-3.5 rounded-xl mb-4' }, errorMessage),
+      ]),
+      e('h2', { key: 'title', className: 'text-2xl font-black tracking-tight mb-1' }, 'Setup Career Profile'),
+      e('p', { key: 'subtitle', className: 'text-xs text-gray-400 mb-6' }, 'Register verified access handles to active task payouts.'),
+      errorMessage && e('div', { key: 'err', className: 'bg-red-50 text-red-600 text-xs font-semibold p-3.5 rounded-xl mb-4' }, errorMessage),
       
-      e('div', { className: 'space-y-5 flex-1' }, [
-        e('div', null, [
+      e('div', { key: 'fields', className: 'space-y-5 flex-1' }, [
+        e('div', { key: 'f-name' }, [
           e('label', { className: 'block text-xs font-bold text-gray-400 uppercase mb-2 tracking-wider' }, 'Full Legal Name'),
           e('input', { type: 'text', value: fullName, onChange: e => setFullName(e.target.value), placeholder: 'John Doe', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] text-gray-800 rounded-xl focus:outline-none text-sm font-medium border border-transparent' })
         ]),
-        e('div', null, [
+        e('div', { key: 'f-email' }, [
           e('label', { className: 'block text-xs font-bold text-gray-400 uppercase mb-2 tracking-wider' }, 'Email Address'),
           e('input', { type: 'email', value: email, onChange: e => setEmail(e.target.value), placeholder: 'name@example.com', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] text-gray-800 rounded-xl focus:outline-none text-sm font-medium border border-transparent' })
         ]),
-        e('div', null, [
+        e('div', { key: 'f-pass' }, [
           e('label', { className: 'block text-xs font-bold text-gray-400 uppercase mb-2 tracking-wider' }, 'Password'),
           e('input', { type: 'password', value: password, onChange: e => setPassword(e.target.value), placeholder: 'Minimum 6 characters', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] text-gray-800 rounded-xl focus:outline-none text-sm font-medium border border-transparent' })
         ]),
-        e('div', { className: 'bg-[#F8F8FA] p-4 rounded-xl flex items-center justify-between text-xs mt-2' }, [
+        e('div', { key: 'fee-info', className: 'bg-[#F8F8FA] p-4 rounded-xl flex items-center justify-between text-xs mt-2' }, [
           e('div', null, [
             e('span', { className: 'font-bold block text-gray-900' }, 'One-Time Setup Fee'),
             e('span', { className: 'text-gray-400 font-medium' }, 'Includes dashboard deployment allocation')
           ]),
           e('span', { className: 'text-sm font-black text-[#121212]' }, '$25.00')
         ]),
-        // Intercepts flow to launch the instruction box modal
-        e('button', { onClick: triggerCreatorPaymentModal, className: 'w-full bg-[#121212] text-white font-bold py-4 rounded-xl text-sm shadow-sm active:scale-[0.99] transition-transform' }, 'Pay Fee & Deploy Profile')
+        e('button', { key: 'pay-btn', onClick: triggerCreatorPaymentModal, className: 'w-full bg-[#121212] text-white font-bold py-4 rounded-xl text-sm shadow-sm active:scale-[0.99] transition-transform' }, 'Pay Fee & Deploy Profile')
       ]),
 
-      // --- BITCOIN INSTRUCTION PAYMENT MODAL BOX ---
-      isCreatorPaymentOpen && e('div', { className: 'fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 max-w-md mx-auto' }, [
+      // Bitcoin Instruction Modal Box Overlay
+      isCreatorPaymentOpen && e('div', { key: 'pay-modal', className: 'fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 max-w-md mx-auto' }, [
         e('div', { className: 'bg-white w-full rounded-2xl p-6 shadow-xl space-y-4 border border-gray-100 text-center' }, [
           e('div', { className: 'w-12 h-12 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto' }, 
             e('ion-icon', { name: 'logo-bitcoin', style: { fontSize: '28px' } })
@@ -239,7 +242,6 @@ function App() {
             e('p', { className: 'text-xs text-gray-400 mt-1 px-2' }, 'Send exactly $25.00 worth of BTC to the official application network address below to activate your premium workspace.')
           ]),
           
-          // Secure Bitcoin Wallet Box Setup
           e('div', { className: 'bg-[#F8F8FA] p-3.5 rounded-xl border border-gray-200/60 text-left' }, [
             e('span', { className: 'block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1' }, 'BTC Network Address'),
             e('div', { className: 'flex items-center justify-between' }, [
@@ -248,7 +250,6 @@ function App() {
             ])
           ]),
 
-          // Active Action Buttons
           e('div', { className: 'space-y-2 pt-2' }, [
             e('button', { 
               onClick: handleConfirmCreatorPayment, 
@@ -264,36 +265,36 @@ function App() {
     ]);
   }
 
-  // --- SCREEN 5: VIEWER SIGNUP (FREE BASE) ---
+  // 5. Viewer Signup Portal
   if (currentPage === 'signup_viewer') {
-    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' },
-      e('button', { onClick: () => navigateTo('choose_track'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6' }, 
+    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' }, [
+      e('button', { key: 'back', onClick: () => navigateTo('choose_track'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6' }, [
         e('ion-icon', { name: 'arrow-back-outline', style: { marginRight: '4px' } }), 'BACK'
-      ),
-      e('h2', { className: 'text-2xl font-black tracking-tight mb-2' }, 'Setup Viewer Profile'),
-      e('p', { className: 'text-xs text-gray-400 mb-4' }, 'Register a consumer wallet profile to access creator content catalogs.'),
-      errorMessage && e('div', { className: 'bg-red-50 text-red-600 text-xs font-semibold p-3.5 rounded-xl mb-4' }, errorMessage),
-      e('div', { className: 'space-y-4 flex-1' }, [
-        e('div', null, [
+      ]),
+      e('h2', { key: 'title', className: 'text-2xl font-black tracking-tight mb-2' }, 'Setup Viewer Profile'),
+      e('p', { key: 'subtitle', className: 'text-xs text-gray-400 mb-4' }, 'Register a consumer wallet profile to access creator content catalogs.'),
+      errorMessage && e('div', { key: 'err', className: 'bg-red-50 text-red-600 text-xs font-semibold p-3.5 rounded-xl mb-4' }, errorMessage),
+      e('div', { key: 'fields', className: 'space-y-4 flex-1' }, [
+        e('div', { key: 'f-email' }, [
           e('label', { className: 'block text-xs font-bold text-gray-400 uppercase mb-2 tracking-wider' }, 'Email Address'),
           e('input', { type: 'email', value: email, onChange: e => setEmail(e.target.value), placeholder: 'name@example.com', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] border border-gray-100 rounded-xl focus:outline-none text-sm' })
         ]),
-        e('div', null, [
+        e('div', { key: 'f-pass' }, [
           e('label', { className: 'block text-xs font-bold text-gray-400 uppercase mb-2 tracking-wider' }, 'Secure Password'),
           e('input', { type: 'password', value: password, onChange: e => setPassword(e.target.value), placeholder: 'Minimum 6 characters', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] border border-gray-100 rounded-xl focus:outline-none text-sm' })
         ]),
-        e('button', { onClick: handleAuthViewer, className: 'w-full bg-[#121212] text-white font-bold py-4 rounded-xl text-sm mt-4 shadow-sm' }, 'Create Free Account')
+        e('button', { key: 'submit', onClick: handleAuthViewer, className: 'w-full bg-[#121212] text-white font-bold py-4 rounded-xl text-sm mt-4 shadow-sm' }, 'Create Free Account')
       ])
-    );
+    ]);
   }
 
-  // --- SCREEN 6A: SECURE CREATOR CAREER DASHBOARD TRACK ---
-  if (userRole === 'creator') {
+  // 6A. Dashboard View - Creator Track
+  if (currentPage === 'dashboard' && userRole === 'creator') {
     return e('div', { className: 'min-h-screen bg-[#F8F8FA] text-[#121212] max-w-md mx-auto relative shadow-md' }, [
       
-      // SIDEBAR GATEWAY SYSTEM
-      isSidebarOpen && e('div', { className: 'fixed inset-0 bg-black/50 z-40 max-w-md mx-auto', onClick: () => setIsSidebarOpen(false) }),
-      e('div', { className: `fixed top-0 left-0 bottom-0 w-72 bg-white z-50 shadow-xl transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} max-w-md flex flex-col justify-between p-5` }, [
+      // Sidebar Navigation Panel Module
+      isSidebarOpen && e('div', { key: 'overlay', className: 'fixed inset-0 bg-black/50 z-40 max-w-md mx-auto', onClick: () => setIsSidebarOpen(false) }),
+      e('div', { key: 'sidebar', className: `fixed top-0 left-0 bottom-0 w-72 bg-white z-50 shadow-xl transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} max-w-md flex flex-col justify-between p-5` }, [
         e('div', null, [
           e('div', { className: 'flex justify-between items-center border-b border-gray-100 pb-4 mb-4' }, [
             e('h2', { className: 'font-bold text-lg' }, 'Menu Options'),
@@ -306,8 +307,8 @@ function App() {
         ])
       ]),
 
-      // HEADER BLOCK
-      e('div', { className: 'relative bg-[#121212] text-white pt-12 pb-6 px-4 rounded-b-[24px]' }, [
+      // Top Header Balance Block
+      e('div', { key: 'header', className: 'relative bg-[#121212] text-white pt-12 pb-6 px-4 rounded-b-[24px]' }, [
         e('div', { className: 'flex justify-between items-center mb-4' }, [
           e('button', { onClick: () => setIsSidebarOpen(true) }, e('ion-icon', { name: 'menu-outline', style: { fontSize: '26px' } })),
           e('div', { className: 'flex items-center space-x-5' }, [
@@ -327,9 +328,9 @@ function App() {
         ])
       ]),
 
-      // ANALYTICS & ACTIVE PROGRAM HUBS
-      e('div', { className: 'p-4 space-y-4' }, [
-        e('div', { className: 'bg-white rounded-2xl p-4 shadow-sm' }, [
+      // Core Program and Data Panels
+      e('div', { key: 'content', className: 'p-4 space-y-4' }, [
+        e('div', { key: 'analytics', className: 'bg-white rounded-2xl p-4 shadow-sm' }, [
           e('h2', { className: 'text-sm font-bold mb-3' }, 'Rewards analytics'),
           e('div', { className: 'bg-[#F8F8FA] rounded-xl p-4' }, [
             e('div', { className: 'text-2xl font-bold' }, '$0.00'),
@@ -337,7 +338,7 @@ function App() {
           ])
         ]),
 
-        e('div', { className: 'bg-white rounded-2xl p-4 shadow-sm' }, [
+        e('div', { key: 'programs', className: 'bg-white rounded-2xl p-4 shadow-sm' }, [
           e('h2', { className: 'text-sm font-bold mb-3' }, 'Active programs'),
           e('div', { className: 'flex space-x-5 overflow-x-auto pb-2 scrollbar-none' }, activeProgramsList.map(program => (
             e('div', { key: program.id, className: 'flex flex-col items-center min-w-[72px]' }, [
@@ -349,7 +350,7 @@ function App() {
           )))
         ]),
 
-        e('div', { className: 'bg-white rounded-2xl p-4 shadow-sm' }, [
+        e('div', { key: 'discovery', className: 'bg-white rounded-2xl p-4 shadow-sm' }, [
           e('h2', { className: 'text-sm font-bold mb-2' }, 'Programs for you'),
           ['Work with Artists', 'Video Gifts', 'Subscription'].map((item, index) => (
             e('div', { key: index, className: 'flex items-center justify-between py-3 border-b border-gray-50 text-xs' }, [
@@ -361,11 +362,11 @@ function App() {
     ]);
   }
 
-  // --- SCREEN 6B: GENERAL VIEWER TRACK ---
-  if (userRole === 'viewer') {
+  // 6B. Dashboard View - General Viewer Track
+  if (currentPage === 'dashboard' && userRole === 'viewer') {
     return e('div', { className: 'min-h-screen bg-[#F8F8FA] text-[#121212] max-w-md mx-auto relative shadow-md flex flex-col justify-between' }, [
       
-      e('div', { className: 'bg-[#121212] text-white pt-12 pb-4 px-4 rounded-b-[20px] flex justify-between items-center shadow-md' }, [
+      e('div', { key: 'header', className: 'bg-[#121212] text-white pt-12 pb-4 px-4 rounded-b-[20px] flex justify-between items-center shadow-md' }, [
         e('div', { className: 'flex items-center space-x-2' }, [
           e('div', { className: 'w-8 h-8 bg-white text-[#121212] rounded-lg flex items-center justify-center' }, e('ion-icon', { name: 'wallet' })),
           e('div', null, [
@@ -379,9 +380,9 @@ function App() {
         }, [e('ion-icon', { name: 'logo-bitcoin' }), e('span', null, 'Buy Fatcoins')])
       ]),
 
-      errorMessage && e('div', { className: 'mx-4 mt-3 bg-red-50 text-red-600 text-xs font-bold p-3 rounded-xl border border-red-100' }, errorMessage),
+      errorMessage && e('div', { key: 'err', className: 'mx-4 mt-3 bg-red-50 text-red-600 text-xs font-bold p-3 rounded-xl border border-red-100' }, errorMessage),
 
-      e('div', { className: 'flex-1 p-4 overflow-y-auto' }, [
+      e('div', { key: 'feed', className: 'flex-1 p-4 overflow-y-auto' }, [
         activeTab === 'feed' && e('div', { className: 'space-y-4' }, sampleCreators.map(creator => {
           const isUnlocked = unlockedCreators.includes(creator.id);
           const isSubbed = subscribedCreators.includes(creator.id);
@@ -442,8 +443,8 @@ function App() {
         }))
       ]),
 
-      // --- FATCOIN TOPUP EXCHANGE MODAL ---
-      isTopUpOpen && e('div', { className: 'fixed inset-0 bg-black/60 z-50 flex items-end justify-center p-4 max-w-md mx-auto' }, [
+      // Exchange Token Top Up Modal Container
+      isTopUpOpen && e('div', { key: 'topup-modal', className: 'fixed inset-0 bg-black/60 z-50 flex items-end justify-center p-4 max-w-md mx-auto' }, [
         e('div', { className: 'bg-white w-full rounded-t-3xl p-6 space-y-4' }, [
           e('div', { className: 'flex justify-between items-center border-b border-gray-100 pb-3' }, [
             e('div', null, [
@@ -472,8 +473,8 @@ function App() {
         ])
       ]),
 
-      // BOTTOM NAVIGATION TAB BAR
-      e('div', { className: 'bg-white border-t border-gray-100 py-3 px-8 flex justify-around items-center' }, [
+      // Navigation Bar
+      e('div', { key: 'nav', className: 'bg-white border-t border-gray-100 py-3 px-8 flex justify-around items-center' }, [
         e('button', { onClick: () => setActiveTab('feed'), className: `flex flex-col items-center space-y-0.5 ${activeTab === 'feed' ? 'text-[#121212]' : 'text-gray-300'}` }, [
           e('ion-icon', { name: 'apps', style: { fontSize: '20px' } }), e('span', { className: 'text-[10px] font-bold' }, 'Explore')
         ]),
@@ -483,6 +484,9 @@ function App() {
       ])
     ]);
   }
+
+  // Fallback safe layer context
+  return e('div', { className: 'p-6 text-center text-xs text-gray-400' }, 'Initial security initialization module runtime mapping...');
 }
 
 const root = window.ReactDOM.createRoot(document.getElementById('root'));
