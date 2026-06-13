@@ -315,13 +315,35 @@ function App() {
     ])))
   ]);
 
+  // --- 👤 REFACTORED WORKSPACE SETTINGS PROFILE PICTURE VIEW ---
   const renderMyProfileTab = () => e('div', { className: 'p-5 space-y-4 animate-fade-in' }, [
-    e('div', { className: 'bg-white border border-neutral-200/80 rounded-[24px] p-6 text-center space-y-4 shadow-3xs' }, [
-      e('div', { className: 'w-16 h-16 bg-neutral-900 text-white rounded-2xl mx-auto flex items-center justify-center font-black text-xl shadow-sm' }, fullName ? fullName.charAt(0).toUpperCase() : 'F'),
-      e('div', { className: 'space-y-0.5' }, [e('h2', { className: 'font-black text-base text-neutral-900 tracking-tight' }, fullName || 'FATSOCIAL Creator'), e('p', { className: 'text-[11px] text-neutral-400 font-mono font-medium' }, email || 'account@fatsocial.github.io')]),
-      e('div', { className: 'pt-3 border-t border-neutral-100 flex justify-around text-center' }, [['Verification', 'Active ✔️'], ['Tier Class', 'Premium Pro']].map(([lbl, val]) => e('div', { key: lbl }, [e('span', { className: 'block text-[9px] font-black text-neutral-400 uppercase tracking-wider mb-0.5' }, lbl), e('span', { className: 'text-xs font-black text-neutral-900' }, val)])))
+    e('div', { className: 'bg-white border border-neutral-200/80 rounded-[24px] p-6 flex flex-col items-center justify-center text-center space-y-4 shadow-3xs' }, [
+      
+      // Wide Circled Profile Frame
+      e('div', { className: 'relative w-28 h-28 rounded-full border-2 border-neutral-950 bg-neutral-50 overflow-hidden flex items-center justify-center shadow-xs' }, [
+        e('span', { className: 'text-neutral-950 font-black text-3xl select-none' }, fullName ? fullName.charAt(0).toUpperCase() : 'F')
+      ]),
+
+      // Profile Information Context Stack Left Cleanly Centered Underneath
+      e('div', { className: 'space-y-1' }, [
+        e('h2', { className: 'font-black text-lg text-neutral-900 tracking-tight' }, fullName || 'FATSOCIAL Creator'),
+        e('p', { className: 'text-[11px] text-neutral-400 font-mono font-medium' }, email || 'account@fatsocial.github.io')
+      ]),
+
+      // Split Verification & Metrics Grid Block Section
+      e('div', { className: 'pt-3 border-t border-neutral-100 w-full flex justify-around text-center' }, [
+        ['Verification', 'Active ✔️'],
+        ['Tier Class', 'Premium Pro']
+      ].map(([lbl, val]) => e('div', { key: lbl }, [
+        e('span', { className: 'block text-[9px] font-black text-neutral-400 uppercase tracking-wider mb-0.5' }, lbl),
+        e('span', { className: 'text-xs font-black text-neutral-900' }, val)
+      ])))
     ]),
-    e('button', { onClick: handleLogout, className: 'w-full bg-neutral-50 text-neutral-900 border border-neutral-200 font-black py-3.5 rounded-xl text-xs uppercase tracking-wide shadow-3xs active:scale-98 transition-transform' }, 'Log Out System Session')
+
+    e('button', { 
+      onClick: handleLogout, 
+      className: 'w-full bg-neutral-50 text-neutral-900 border border-neutral-200 font-black py-3.5 rounded-xl text-xs uppercase tracking-wide shadow-3xs active:scale-98 transition-transform' 
+    }, 'Log Out System Session')
   ]);
 
   const renderMonetizationTab = () => e('div', { className: 'animate-fade-in' }, [
@@ -363,8 +385,7 @@ function App() {
         creatorTab === 'my_profile' && renderMyProfileTab()
       ]),
 
-      // --- 📌 NEW REFACTORED INLINE NAVIGATION BAR NODE ---
-      // Built raw inside the single-file setup context with the new SVG vectors
+      // --- 📌 INLINE NAVIGATION BAR NODE ---
       e('nav', { className: 'fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-xl border-t border-neutral-200/80 px-2 py-3 grid grid-cols-5 gap-1 z-50 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]' }, [
         { 
           id: 'home', 
