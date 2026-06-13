@@ -1,4 +1,4 @@
-// Grab React elements directly from the mobile window context
+c// Grab React elements directly from the mobile window context
 const { useState, useEffect } = window.React;
 const e = window.React.createElement;
 
