@@ -7,6 +7,9 @@ function App() {
   const [currentPage, setCurrentPage] = useState(() => localStorage.getItem('fatsocial_page') || 'landing');
   const [userRole, setUserRole] = useState(() => localStorage.getItem('fatsocial_role') || '');
   const [fatcoinBalance, setFatcoinBalance] = useState(() => parseInt(localStorage.getItem('fatsocial_coins')) || 0);
+  
+  // Dynamic Creator Earnings Account Engine
+  const [creatorEarnings, setCreatorEarnings] = useState(() => parseFloat(localStorage.getItem('fatsocial_creator_earnings')) || 0.00);
 
   // Layout & Global View Configurations
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -27,20 +30,34 @@ function App() {
   const [paymentStatus, setPaymentStatus] = useState(() => localStorage.getItem('fatsocial_pay_status') || 'idle'); // 'idle', 'verifying'
   const [isAdminViewOpen, setIsAdminViewOpen] = useState(false);
 
+  // --- PLATFORM TASK SYSTEM STATE STORAGE ---
+  const [tasks, setTasks] = useState(() => {
+    const saved = localStorage.getItem('fatsocial_tasks_database');
+    return saved ? JSON.parse(saved) : [
+      { id: 't1', network: 'TikTok', title: 'Viral Track Campaign Placement', reward: 15.00, desc: 'Add our custom ecosystem sound tag to your primary video slide deck and keep it pinned for 24 hours.', status: 'available', proofUrl: '' },
+      { id: 't2', network: 'Facebook', title: 'Profile Matrix Group Stream Pin', reward: 35.00, desc: 'Pin the structural registration portal banner link to your core media group timeline.', status: 'available', proofUrl: '' },
+      { id: 't3', network: 'Instagram', title: 'Elite Market Stories Mention', reward: 20.00, desc: 'Publish our official marketing showcase vector asset to your live story matrix with a swipe up anchor.', status: 'available', proofUrl: '' }
+    ];
+  });
+  const [activeSubmissionTask, setActiveSubmissionTask] = useState(null);
+  const [typedProofUrl, setTypedProofUrl] = useState('');
+
   // Sync state cleanly with LocalStorage on refresh
   useEffect(() => {
     localStorage.setItem('fatsocial_page', currentPage);
     localStorage.setItem('fatsocial_role', userRole);
     localStorage.setItem('fatsocial_coins', fatcoinBalance);
+    localStorage.setItem('fatsocial_creator_earnings', creatorEarnings);
     localStorage.setItem('fatsocial_unlocked', JSON.stringify(unlockedCreators));
     localStorage.setItem('fatsocial_subs', JSON.stringify(subscribedCreators));
     localStorage.setItem('fatsocial_pay_status', paymentStatus);
+    localStorage.setItem('fatsocial_tasks_database', JSON.stringify(tasks));
     
     // Form caching for structural safety
     localStorage.setItem('fatsocial_cache_name', fullName);
     localStorage.setItem('fatsocial_cache_email', email);
     localStorage.setItem('fatsocial_cache_pass', password);
-  }, [currentPage, userRole, fatcoinBalance, unlockedCreators, subscribedCreators, paymentStatus, fullName, email, password]);
+  }, [currentPage, userRole, fatcoinBalance, creatorEarnings, unlockedCreators, subscribedCreators, paymentStatus, tasks, fullName, email, password]);
 
   // Infinite Polling Loop: Checks if the admin has granted verification approval to this account profile
   useEffect(() => {
@@ -76,6 +93,7 @@ function App() {
     setIsSidebarOpen(false);
     setUserRole('');
     setFatcoinBalance(0);
+    setCreatorEarnings(0.00);
     setUnlockedCreators([]);
     setSubscribedCreators([]);
     setFullName('');
@@ -148,36 +166,73 @@ function App() {
     setSubscribedCreators(prev => [...prev, creatorId]);
   };
 
+  // --- SUBMISSION LOGIC FOR CAMPAIGN LINKS ---
+  const openSubmissionDrawer = (task) => {
+    setActiveSubmissionTask(task);
+    setTypedProofUrl('');
+  };
+
+  const handleExecuteProofSubmission = () => {
+    if (!typedProofUrl.trim()) {
+      alert("Please provide a valid platform validation link destination.");
+      return;
+    }
+    setTasks(prev => prev.map(t => {
+      if (t.id === activeSubmissionTask.id) {
+        return { ...t, status: 'pending', proofUrl: typedProofUrl };
+      }
+      return t;
+    }));
+    setActiveSubmissionTask(null);
+    alert("Campaign performance data locked. Task verification request routed directly to administrative queue.");
+  };
+
+  // Admin Payout Credit Bridge
+  const handleAdminApproveTask = (taskId, rewardValue) => {
+    setTasks(prev => prev.map(t => {
+      if (t.id === taskId) return { ...t, status: 'approved' };
+      return t;
+    }));
+    setCreatorEarnings(prev => prev + rewardValue);
+  };
+
   // --- 2. FLOATING ADMINISTRATIVE OVERLAY PANEL ---
   const renderInlineAdminController = () => {
-    // Check if the current user profile context has an ongoing transaction waiting
     const hasPendingUser = paymentStatus === 'verifying' && fullName && email;
+    const pendingTasks = tasks.filter(t => t.status === 'pending');
 
     return e('div', { className: 'fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-900 border border-red-500 text-white text-xs p-4 rounded-2xl shadow-2xl z-[9999] w-[90%] max-w-xs space-y-3' }, [
       e('div', { className: 'flex justify-between items-center border-b border-gray-700 pb-1.5' }, [
         e('span', { className: 'font-black text-red-400 tracking-wide uppercase text-[11px]' }, '🛠️ Admin Control Panel'),
         e('button', { onClick: () => setIsAdminViewOpen(false), className: 'text-gray-400 font-bold px-1 text-sm' }, '✕')
       ]),
-      hasPendingUser ? 
-        e('div', { className: 'space-y-2' }, [
-          e('div', { className: 'bg-gray-800 p-2.5 rounded-xl text-[11px] font-mono border border-gray-700 space-y-1' }, [
-            e('p', { className: 'text-gray-400 font-bold text-[10px] uppercase' }, 'Awaiting Verification Account:'),
-            e('p', { className: 'text-white font-bold' }, `NAME: ${fullName}`),
-            e('p', { className: 'text-blue-400' }, `EMAIL: ${email}`),
-            e('p', { className: 'text-amber-400' }, `FEE STATUS: $25.00 Pending`)
-          ]),
-          e('button', { 
-            onClick: () => localStorage.setItem('fatsocial_admin_approved_trigger', 'true'),
-            className: 'w-full bg-emerald-500 text-black font-black py-3 rounded-xl text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform'
-          }, 'Approve User Account')
-        ]) : 
-        e('p', { className: 'text-gray-400 text-center py-4 italic text-[11px]' }, 'No accounts currently waiting for payment verification.')
+      hasPendingUser && e('div', { className: 'space-y-2 border-b border-gray-800 pb-2' }, [
+        e('div', { className: 'bg-gray-800 p-2.5 rounded-xl text-[11px] font-mono border border-gray-700 space-y-1' }, [
+          e('p', { className: 'text-gray-400 font-bold text-[10px] uppercase' }, 'Awaiting Verification Account:'),
+          e('p', { className: 'text-white font-bold' }, `NAME: ${fullName}`),
+          e('p', { className: 'text-blue-400' }, `EMAIL: ${email}`),
+          e('p', { className: 'text-amber-400' }, `FEE STATUS: $25.00 Pending`)
+        ]),
+        e('button', { 
+          onClick: () => localStorage.setItem('fatsocial_admin_approved_trigger', 'true'),
+          className: 'w-full bg-emerald-500 text-black font-black py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform'
+        }, 'Approve User Account')
+      ]),
+      pendingTasks.length > 0 ? e('div', { className: 'space-y-2 pt-1' }, [
+        e('p', { className: 'text-[10px] font-black text-amber-400 uppercase tracking-wider' }, '📬 Pending Task Submissions:'),
+        pendingTasks.map(t => e('div', { key: t.id, className: 'bg-gray-800 p-2 rounded-xl text-[10px] font-mono space-y-1.5 border border-gray-700' }, [
+          e('div', { className: 'flex justify-between font-bold' }, [e('span', { className: 'text-white' }, t.title), e('span', { className: 'text-emerald-400' }, `$${t.reward.toFixed(2)}`)]),
+          e('div', { className: 'text-blue-400 truncate underline text-[9px] select-all' }, t.proofUrl),
+          e('button', {
+            onClick: () => handleAdminApproveTask(t.id, t.reward),
+            className: 'w-full bg-amber-400 text-black font-black py-1.5 rounded-lg text-[10px] uppercase tracking-wide'
+          }, 'Approve Task Payout')
+        ]))
+      ]) : (!hasPendingUser && e('p', { className: 'text-gray-400 text-center py-4 italic text-[11px]' }, 'No accounts or task actions awaiting administrative review.'))
     ]);
   };
 
   // --- 3. LAYER ROUTER INTERFACE RENDERING ENGINE ---
-  
-  // Custom secret toggle button to load admin review console dynamically
   const renderAdminToggleButton = () => (
     e('button', { 
       onClick: () => setIsAdminViewOpen(!isAdminViewOpen),
@@ -412,21 +467,97 @@ function App() {
 
   // View 6A: Authenticated Portal Content Creator Workspace
   if (currentPage === 'dashboard' && userRole === 'creator') {
-    return e('div', { className: 'min-h-screen bg-[#F8F8FA] text-[#121212] max-w-md mx-auto relative shadow-md p-4 space-y-4' }, [
+    return e('div', { className: 'min-h-screen bg-[#F8F8FA] text-[#121212] max-w-md mx-auto relative shadow-md p-4 space-y-4 pb-12' }, [
       renderAdminToggleButton(),
       isAdminViewOpen && renderInlineAdminController(),
-      e('div', { className: 'bg-[#121212] text-white p-6 rounded-2xl flex justify-between items-center' }, [
+      
+      // Dynamic Monetization Header (Synced with dynamic variable matrix)
+      e('div', { className: 'bg-[#121212] text-white p-6 rounded-2xl flex justify-between items-center relative overflow-hidden' }, [
         e('div', null, [
-          e('div', { className: 'text-xs text-gray-400' }, 'Creator Monetization Platform'),
-          e('div', { className: 'text-3xl font-black mt-1' }, '$0.00')
+          e('div', { className: 'text-[11px] text-gray-400 font-bold uppercase tracking-wider' }, 'Creator Monetization Platform'),
+          e('div', { className: 'text-3xl font-black mt-1' }, `$${creatorEarnings.toFixed(2)}`)
         ]),
-        e('button', { onClick: handleLogout, className: 'bg-white text-[#121212] px-3 py-1.5 rounded-xl font-bold text-xs' }, 'Logout')
+        e('button', { onClick: handleLogout, className: 'bg-white text-[#121212] px-4 py-2 rounded-xl font-black text-xs active:scale-95 transition-transform shadow-sm' }, 'Logout')
       ]),
-      e('div', { className: 'bg-white rounded-2xl p-4 shadow-sm space-y-2' }, [
-        e('h2', { className: 'text-sm font-bold' }, 'Active Programs'),
-        e('div', { className: 'text-xs text-gray-500' }, '• LIVE Rewards (Active)'),
-        e('div', { className: 'text-xs text-gray-500' }, '• Sub Tips (Active)'),
-        e('div', { className: 'text-xs text-gray-500' }, '• Task Rewards (Active)')
+
+      // Static Active Status Indicators
+      e('div', { className: 'bg-white rounded-2xl p-4 shadow-sm space-y-3' }, [
+        e('h2', { className: 'text-xs font-black text-gray-400 uppercase tracking-wider' }, 'Active Systems'),
+        e('div', { className: 'grid grid-cols-3 gap-2 text-center text-[11px] font-bold' }, [
+          e('div', { className: 'bg-emerald-50 text-emerald-700 py-1.5 rounded-lg border border-emerald-100' }, '🟢 LIVE Rewards'),
+          e('div', { className: 'bg-emerald-50 text-emerald-700 py-1.5 rounded-lg border border-emerald-100' }, '🟢 Sub Tips'),
+          e('div', { className: 'bg-emerald-50 text-emerald-700 py-1.5 rounded-lg border border-emerald-100' }, '🟢 Task Rewards')
+        ])
+      ]),
+
+      // --- NEW: INTERACTIVE HIGH-CONVERTING TASK MATRICES ---
+      e('div', { className: 'space-y-3' }, [
+        e('h2', { className: 'text-xs font-black text-gray-400 uppercase tracking-wider pl-1' }, 'Available Platform Campaigns'),
+        
+        tasks.map(task => {
+          let statusBadgeColor = 'bg-blue-50 text-blue-600 border-blue-100';
+          let statusText = 'Available';
+          if (task.status === 'pending') {
+            statusBadgeColor = 'bg-amber-50 text-amber-600 border-amber-100';
+            statusText = 'Pending Audit';
+          } else if (task.status === 'approved') {
+            statusBadgeColor = 'bg-emerald-50 text-emerald-600 border-emerald-100';
+            statusText = 'Payout Disbursed';
+          }
+
+          return e('div', { key: task.id, className: 'bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col justify-between space-y-3' }, [
+            e('div', { className: 'flex justify-between items-start' }, [
+              e('div', { className: 'space-y-1' }, [
+                e('div', { className: 'flex items-center space-x-2' }, [
+                  e('span', { className: 'text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 bg-gray-900 text-white rounded' }, task.network),
+                  e('span', { className: `text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusBadgeColor}` }, statusText)
+                ]),
+                e('h3', { className: 'font-black text-sm text-gray-900 pt-0.5' }, task.title)
+              ]),
+              e('div', { className: 'text-right' }, [
+                e('span', { className: 'text-xs text-gray-400 block font-bold' }, 'Payout'),
+                e('span', { className: 'text-sm font-black text-emerald-600' }, `$${task.reward.toFixed(2)}`)
+              ])
+            ]),
+            e('p', { className: 'text-xs text-gray-500 font-medium leading-relaxed' }, task.desc),
+            
+            task.status === 'available' && e('button', {
+              onClick: () => openSubmissionDrawer(task),
+              className: 'w-full bg-[#121212] text-white text-xs font-black py-2.5 rounded-xl uppercase tracking-wider active:scale-[0.98] transition-transform'
+            }, 'Submit Proof Link'),
+
+            task.status === 'pending' && e('div', { className: 'bg-gray-50 p-2.5 rounded-xl border border-dashed text-[11px] text-gray-400 font-mono font-medium truncate' }, `Sub Link: ${task.proofUrl}`),
+            task.status === 'approved' && e('div', { className: 'text-center text-xs font-bold text-emerald-600 bg-emerald-50/50 py-2 rounded-xl border border-emerald-100' }, '🎉 Earnings added to wallet balance successfully.')
+          ]);
+        })
+      ]),
+
+      // --- NEW: SLIDING LINK PROOF SUBMISSION MODAL DRAWER ---
+      activeSubmissionTask && e('div', { className: 'fixed inset-0 bg-black/60 z-50 flex items-end justify-center p-4 animate-fade-in' }, [
+        e('div', { className: 'bg-white w-full rounded-t-3xl p-6 space-y-4 max-w-md shadow-2xl transition-transform transform translate-y-0' }, [
+          e('div', { className: 'flex justify-between items-center border-b pb-2' }, [
+            e('div', null, [
+              e('span', { className: 'text-[9px] font-black uppercase tracking-widest text-gray-400 block' }, activeSubmissionTask.network),
+              e('h3', { className: 'font-black text-base text-gray-900' }, 'Verify Performance')
+            ]),
+            e('button', { onClick: () => setActiveSubmissionTask(null), className: 'text-gray-400 font-black px-2 text-base' }, '✕')
+          ]),
+          e('div', { className: 'space-y-1' }, [
+            e('label', { className: 'block text-[10px] font-black text-gray-400 uppercase tracking-wider' }, 'Social Asset URL Destination'),
+            e('input', {
+              type: 'url',
+              value: typedProofUrl,
+              onChange: e => setTypedProofUrl(e.target.value),
+              placeholder: 'https://social-app.com/your-username/video/123456',
+              className: 'w-full px-4 py-3 bg-[#F8F8FA] border rounded-xl text-xs font-medium focus:outline-none focus:border-[#121212]'
+            })
+          ]),
+          e('p', { className: 'text-[11px] text-gray-400 leading-relaxed font-medium' }, 'Ensure the link is public. Our administration console audits performance analytics within 24 hours.'),
+          e('button', {
+            onClick: handleExecuteProofSubmission,
+            className: 'w-full bg-emerald-500 text-white font-black py-3.5 rounded-xl text-xs uppercase tracking-wider shadow-md active:scale-[0.99] transition-transform'
+          }, 'Lock Submission Link')
+        ])
       ])
     ]);
   }
