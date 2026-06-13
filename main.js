@@ -16,6 +16,7 @@ function App() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [activeTab, setActiveTab] = useState('feed'); 
 
@@ -117,27 +118,34 @@ function App() {
     ]);
   }
 
-  // 2. Track Selector View
+  // 2. Track Selector View (Matches image_9.png)
   if (currentPage === 'choose_track') {
     return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' }, [
-      e('button', { key: 'back', onClick: () => navigateTo('landing'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6' }, '← BACK'),
-      e('h2', { key: 'title', className: 'text-2xl font-black tracking-tight mb-2' }, 'Choose Account Type'),
+      e('button', { key: 'back', onClick: () => navigateTo('landing'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6 uppercase tracking-wider' }, '← Back'),
+      e('h2', { key: 'title', className: 'text-3xl font-black tracking-tight mb-2' }, 'Choose Account Type'),
+      e('p', { key: 'subtitle', className: 'text-xs text-gray-400 mb-6 font-medium' }, 'Select the customized interface suited for your platform profile.'),
       e('div', { key: 'options', className: 'space-y-4 flex-1' }, [
         e('div', { 
           key: 'opt-creator',
           onClick: () => navigateTo('signup_creator'),
-          className: 'border-2 border-[#121212] p-5 rounded-2xl cursor-pointer'
+          className: 'border-2 border-[#121212] p-5 rounded-2xl cursor-pointer bg-white'
         }, [
-          e('h3', { className: 'font-bold text-base mb-1' }, 'Content Creator Career'),
-          e('p', { className: 'text-xs text-gray-500' }, 'Access analytics dashboards and earn task payouts.')
+          e('div', { className: 'flex items-center space-x-2.5 mb-2' }, [
+            e('span', { className: 'text-lg' }, '🏆'),
+            e('h3', { className: 'font-black text-base' }, 'Content Creator Career')
+          ]),
+          e('p', { className: 'text-xs text-gray-500 font-medium leading-relaxed pl-7' }, 'Access analytics dashboards, earn system payouts via tasks, design premium subscriptions, and monetize tools.')
         ]),
         e('div', { 
           key: 'opt-viewer',
           onClick: () => navigateTo('signup_viewer'),
-          className: 'border border-gray-200 p-5 rounded-2xl cursor-pointer'
+          className: 'border border-gray-200 p-5 rounded-2xl cursor-pointer bg-white'
         }, [
-          e('h3', { className: 'font-bold text-base mb-1' }, 'General Consumer / Viewer'),
-          e('p', { className: 'text-xs text-gray-500' }, 'Discover professional skills and purchase usage rights.')
+          e('div', { className: 'flex items-center space-x-2.5 mb-2' }, [
+            e('span', { className: 'text-lg' }, '👁️'),
+            e('h3', { className: 'font-black text-base' }, 'General Consumer / Viewer')
+          ]),
+          e('p', { className: 'text-xs text-gray-500 font-medium leading-relaxed pl-7' }, 'Discover professional skills showcase pools, purchase usage rights licenses, follow creators, send media content gifts, or send direct tips using system tokens.')
         ])
       ])
     ]);
@@ -146,33 +154,65 @@ function App() {
   // 3. Sign In Portal
   if (currentPage === 'signin') {
     return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' }, [
-      e('button', { key: 'back', onClick: () => navigateTo('landing'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6' }, '← BACK'),
-      e('h2', { key: 'title', className: 'text-2xl font-black tracking-tight mb-6' }, 'Welcome Back'),
+      e('button', { key: 'back', onClick: () => navigateTo('landing'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6 uppercase tracking-wider' }, '← Back'),
+      e('h2', { key: 'title', className: 'text-3xl font-black tracking-tight mb-6' }, 'Welcome Back'),
       errorMessage && e('div', { className: 'bg-red-50 text-red-600 text-xs font-semibold p-3 rounded-xl mb-4' }, errorMessage),
+      
       e('div', { className: 'space-y-4 flex-1' }, [
-        e('input', { type: 'email', value: email, onChange: e => setEmail(e.target.value), placeholder: 'name@example.com', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] border border-gray-100 rounded-xl text-sm' }),
-        e('input', { type: 'password', value: password, onChange: e => setPassword(e.target.value), placeholder: 'Enter password', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] border border-gray-100 rounded-xl text-sm' }),
-        e('button', { onClick: handleAuthViewer, className: 'w-full bg-[#121212] text-white font-bold py-4 rounded-xl text-sm' }, 'Sign In Account')
+        e('div', null, [
+          e('label', { className: 'block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-wider' }, 'EMAIL ADDRESS'),
+          e('input', { type: 'email', value: email, onChange: e => setEmail(e.target.value), placeholder: 'name@example.com', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] border-transparent rounded-xl text-sm font-medium focus:outline-none' })
+        ]),
+        e('div', null, [
+          e('label', { className: 'block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-wider' }, 'PASSWORD'),
+          e('div', { className: 'relative' }, [
+            e('input', { type: showPassword ? 'text' : 'password', value: password, onChange: e => setPassword(e.target.value), placeholder: 'Enter your password', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] border-transparent rounded-xl text-sm font-medium focus:outline-none pr-10' }),
+            e('button', { onClick: () => setShowPassword(!showPassword), className: 'absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs' }, '👁️')
+          ])
+        ]),
+        e('button', { onClick: handleAuthViewer, className: 'w-full bg-[#121212] text-white font-black py-4 rounded-xl text-sm shadow-sm mt-2' }, 'Sign In Account'),
+        e('div', { className: 'text-center text-xs text-gray-400 font-bold pt-4' }, [
+          'Don\'t have an account? ', e('span', { onClick: () => navigateTo('choose_track'), className: 'text-gray-900 underline cursor-pointer' }, 'Sign Up')
+        ])
       ])
     ]);
   }
 
-  // 4. Creator Signup Portal
+  // 4. Creator Signup Portal (Restored exactly to match image_10.png)
   if (currentPage === 'signup_creator') {
     return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' }, [
-      e('button', { key: 'back', onClick: () => navigateTo('choose_track'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6' }, '← BACK'),
-      e('h2', { key: 'title', className: 'text-2xl font-black tracking-tight mb-1' }, 'Setup Career Profile'),
+      e('button', { key: 'back', onClick: () => navigateTo('choose_track'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6 uppercase tracking-wider' }, '← Back'),
+      e('h2', { key: 'title', className: 'text-3xl font-black tracking-tight mb-1' }, 'Create Creator Account'),
+      e('p', { key: 'subtitle', className: 'text-xs text-gray-400 mb-6 font-medium' }, 'Register below to access active tasks and payouts.'),
       errorMessage && e('div', { className: 'bg-red-50 text-red-600 text-xs font-semibold p-3 rounded-xl mb-4' }, errorMessage),
       
       e('div', { className: 'space-y-4 flex-1' }, [
-        e('input', { type: 'text', value: fullName, onChange: e => setFullName(e.target.value), placeholder: 'Full Legal Name', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] rounded-xl text-sm border' }),
-        e('input', { type: 'email', value: email, onChange: e => setEmail(e.target.value), placeholder: 'Email Address', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] rounded-xl text-sm border' }),
-        e('input', { type: 'password', value: password, onChange: e => setPassword(e.target.value), placeholder: 'Minimum 6 characters', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] rounded-xl text-sm border' }),
-        e('div', { className: 'bg-[#F8F8FA] p-4 rounded-xl flex items-center justify-between text-xs' }, [
-          e('span', { className: 'font-bold text-gray-900' }, 'One-Time Setup Fee'),
-          e('span', { className: 'text-sm font-black text-[#121212]' }, '$25.00')
+        e('div', null, [
+          e('label', { className: 'block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-wider' }, 'FULL LEGAL NAME'),
+          e('input', { type: 'text', value: fullName, onChange: e => setFullName(e.target.value), placeholder: 'John Doe', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] rounded-xl text-sm font-medium focus:outline-none border-0' })
         ]),
-        e('button', { onClick: triggerCreatorPaymentModal, className: 'w-full bg-[#121212] text-white font-bold py-4 rounded-xl text-sm' }, 'Pay Fee & Deploy Profile')
+        e('div', null, [
+          e('label', { className: 'block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-wider' }, 'EMAIL ADDRESS'),
+          e('input', { type: 'email', value: email, onChange: e => setEmail(e.target.value), placeholder: 'name@example.com', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] rounded-xl text-sm font-medium focus:outline-none border-0' })
+        ]),
+        e('div', null, [
+          e('label', { className: 'block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-wider' }, 'PASSWORD'),
+          e('div', { className: 'relative' }, [
+            e('input', { type: showPassword ? 'text' : 'password', value: password, onChange: e => setPassword(e.target.value), placeholder: 'Create minimum 6-character password', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] rounded-xl text-sm font-medium focus:outline-none border-0 pr-10' }),
+            e('button', { onClick: () => setShowPassword(!showPassword), className: 'absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs' }, '👁️')
+          ])
+        ]),
+        e('div', { className: 'bg-[#F8F8FA] p-4 rounded-xl flex items-center justify-between text-xs mt-2' }, [
+          e('div', { className: 'flex flex-col space-y-0.5' }, [
+            e('span', { className: 'font-bold text-gray-900 text-sm' }, 'One-Time Setup Fee'),
+            e('span', { className: 'text-gray-400 font-medium text-[11px]' }, 'Includes verified platform dashboard access')
+          ]),
+          e('span', { className: 'text-base font-black text-[#121212]' }, '$25.00')
+        ]),
+        e('button', { onClick: triggerCreatorPaymentModal, className: 'w-full bg-[#121212] text-white font-black py-4 rounded-xl text-sm shadow-sm active:scale-[0.99] transition-transform mt-2' }, 'Pay Fee & Complete Registration'),
+        e('div', { className: 'text-center text-xs text-gray-400 font-bold pt-4' }, [
+          'Already have an account? ', e('span', { onClick: () => navigateTo('signin'), className: 'text-gray-900 underline cursor-pointer' }, 'Log In')
+        ])
       ])
     ]);
   }
@@ -182,11 +222,11 @@ function App() {
     return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col justify-center p-6 shadow-md' }, [
       e('div', { className: 'text-center space-y-5' }, [
         e('div', { className: 'text-amber-500 font-black text-xl' }, '₿ Bitcoin Deposit'),
-        e('h3', { className: 'font-black text-xl text-gray-900' }, 'Deposit Required'),
-        e('p', { className: 'text-xs text-gray-400 px-4' }, 'Send exactly $25.00 worth of BTC to the official address below to activate your account.'),
-        e('div', { className: 'bg-[#F8F8FA] p-4 rounded-xl border text-left font-mono text-xs break-all select-all' }, 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh'),
-        e('div', { className: 'space-y-2' }, [
-          e('button', { onClick: handleConfirmCreatorPayment, className: 'w-full bg-emerald-500 text-white font-bold py-4 rounded-xl text-xs uppercase' }, 'I HAVE PAID'),
+        e('h3', { className: 'font-black text-xl text-gray-900 tracking-tight' }, 'Bitcoin Deposit Required'),
+        e('p', { className: 'text-xs text-gray-400 px-4 leading-relaxed' }, 'Send exactly $25.00 worth of BTC to the official address below to activate your premium workspace.'),
+        e('div', { className: 'bg-[#F8F8FA] p-4 rounded-xl border text-left font-mono text-xs break-all select-all font-bold text-gray-800' }, 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh'),
+        e('div', { className: 'space-y-2 pt-2' }, [
+          e('button', { onClick: handleConfirmCreatorPayment, className: 'w-full bg-emerald-500 text-white font-bold py-4 rounded-xl text-xs uppercase tracking-wide shadow-md' }, 'PAID'),
           e('button', { onClick: () => navigateTo('signup_creator'), className: 'w-full bg-transparent text-gray-400 font-bold py-2 rounded-xl text-xs' }, 'Cancel Payment')
         ])
       ])
@@ -196,13 +236,23 @@ function App() {
   // 5. Viewer Signup Portal
   if (currentPage === 'signup_viewer') {
     return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' }, [
-      e('button', { key: 'back', onClick: () => navigateTo('choose_track'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6' }, '← BACK'),
-      e('h2', { key: 'title', className: 'text-2xl font-black tracking-tight mb-2' }, 'Setup Viewer Profile'),
+      e('button', { key: 'back', onClick: () => navigateTo('choose_track'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6 uppercase tracking-wider' }, '← Back'),
+      e('h2', { key: 'title', className: 'text-3xl font-black tracking-tight mb-1' }, 'Setup Viewer Profile'),
+      e('p', { key: 'subtitle', className: 'text-xs text-gray-400 mb-6 font-medium' }, 'Register a consumer wallet profile to access catalogs.'),
       errorMessage && e('div', { className: 'bg-red-50 text-red-600 text-xs font-semibold p-3 rounded-xl mb-4' }, errorMessage),
       e('div', { className: 'space-y-4 flex-1' }, [
-        e('input', { type: 'email', value: email, onChange: e => setEmail(e.target.value), placeholder: 'name@example.com', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] border border-gray-100 rounded-xl text-sm' }),
-        e('input', { type: 'password', value: password, onChange: e => setPassword(e.target.value), placeholder: 'Minimum 6 characters', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] border border-gray-100 rounded-xl text-sm' }),
-        e('button', { onClick: handleAuthViewer, className: 'w-full bg-[#121212] text-white font-bold py-4 rounded-xl text-sm' }, 'Create Free Account')
+        e('div', null, [
+          e('label', { className: 'block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-wider' }, 'EMAIL ADDRESS'),
+          e('input', { type: 'email', value: email, onChange: e => setEmail(e.target.value), placeholder: 'name@example.com', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] border-0 rounded-xl text-sm font-medium focus:outline-none' })
+        ]),
+        e('div', null, [
+          e('label', { className: 'block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-wider' }, 'SECURE PASSWORD'),
+          e('input', { type: 'password', value: password, onChange: e => setPassword(e.target.value), placeholder: 'Minimum 6 characters', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] border-0 rounded-xl text-sm font-medium focus:outline-none' })
+        ]),
+        e('button', { onClick: handleAuthViewer, className: 'w-full bg-[#121212] text-white font-black py-4 rounded-xl text-sm shadow-sm mt-2' }, 'Create Free Account'),
+        e('div', { className: 'text-center text-xs text-gray-400 font-bold pt-4' }, [
+          'Already have an account? ', e('span', { onClick: () => navigateTo('signin'), className: 'text-gray-900 underline cursor-pointer' }, 'Log In')
+        ])
       ])
     ]);
   }
