@@ -1,4 +1,4 @@
-c// Grab React elements directly from the mobile window context
+// Grab React elements directly from the mobile window context
 const { useState, useEffect } = window.React;
 const e = window.React.createElement;
 
@@ -40,6 +40,9 @@ function App() {
     setFatcoinBalance(0);
     setUnlockedCreators([]);
     setSubscribedCreators([]);
+    setFullName('');
+    setEmail('');
+    setPassword('');
     navigateTo('landing');
   };
 
@@ -58,7 +61,7 @@ function App() {
   };
 
   const handleAuthViewer = () => {
-    if (!email || !password) {
+    if (!fullName || !email || !password) {
       setErrorMessage('Please fill out all required setup fields.');
       return;
     }
@@ -118,7 +121,7 @@ function App() {
     ]);
   }
 
-  // 2. Track Selector View (Matches image_9.png)
+  // 2. Track Selector View
   if (currentPage === 'choose_track') {
     return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' }, [
       e('button', { key: 'back', onClick: () => navigateTo('landing'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6 uppercase tracking-wider' }, '← Back'),
@@ -178,7 +181,7 @@ function App() {
     ]);
   }
 
-  // 4. Creator Signup Portal (Restored exactly to match image_10.png)
+  // 4. Creator Signup Portal
   if (currentPage === 'signup_creator') {
     return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' }, [
       e('button', { key: 'back', onClick: () => navigateTo('choose_track'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6 uppercase tracking-wider' }, '← Back'),
@@ -233,21 +236,29 @@ function App() {
     ]);
   }
 
-  // 5. Viewer Signup Portal
+  // 5. Viewer Signup Portal (Updated to smoothly include FULL LEGAL NAME field matching image_11.png styles)
   if (currentPage === 'signup_viewer') {
     return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' }, [
       e('button', { key: 'back', onClick: () => navigateTo('choose_track'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6 uppercase tracking-wider' }, '← Back'),
       e('h2', { key: 'title', className: 'text-3xl font-black tracking-tight mb-1' }, 'Setup Viewer Profile'),
       e('p', { key: 'subtitle', className: 'text-xs text-gray-400 mb-6 font-medium' }, 'Register a consumer wallet profile to access catalogs.'),
       errorMessage && e('div', { className: 'bg-red-50 text-red-600 text-xs font-semibold p-3 rounded-xl mb-4' }, errorMessage),
+      
       e('div', { className: 'space-y-4 flex-1' }, [
+        e('div', null, [
+          e('label', { className: 'block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-wider' }, 'FULL LEGAL NAME'),
+          e('input', { type: 'text', value: fullName, onChange: e => setFullName(e.target.value), placeholder: 'John Doe', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] rounded-xl text-sm font-medium focus:outline-none border-0' })
+        ]),
         e('div', null, [
           e('label', { className: 'block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-wider' }, 'EMAIL ADDRESS'),
           e('input', { type: 'email', value: email, onChange: e => setEmail(e.target.value), placeholder: 'name@example.com', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] border-0 rounded-xl text-sm font-medium focus:outline-none' })
         ]),
         e('div', null, [
           e('label', { className: 'block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-wider' }, 'SECURE PASSWORD'),
-          e('input', { type: 'password', value: password, onChange: e => setPassword(e.target.value), placeholder: 'Minimum 6 characters', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] border-0 rounded-xl text-sm font-medium focus:outline-none' })
+          e('div', { className: 'relative' }, [
+            e('input', { type: showPassword ? 'text' : 'password', value: password, onChange: e => setPassword(e.target.value), placeholder: 'Minimum 6 characters', className: 'w-full px-4 py-3.5 bg-[#F8F8FA] border-0 rounded-xl text-sm font-medium focus:outline-none pr-10' }),
+            e('button', { onClick: () => setShowPassword(!showPassword), className: 'absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs' }, '👁️')
+          ])
         ]),
         e('button', { onClick: handleAuthViewer, className: 'w-full bg-[#121212] text-white font-black py-4 rounded-xl text-sm shadow-sm mt-2' }, 'Create Free Account'),
         e('div', { className: 'text-center text-xs text-gray-400 font-bold pt-4' }, [
