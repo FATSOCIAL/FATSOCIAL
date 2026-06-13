@@ -249,7 +249,7 @@ function App() {
     }, 'Log Out System Session')
   ]);
 
-  // --- UNTOUCHED ORIGINAL MONETIZATION VIEW BLOCK (FROM THE PREVIOUS LOCKED DESIGN) ---
+  // --- UNTOUCHED ORIGINAL MONETIZATION VIEW BLOCK ---
   const renderMonetizationTab = () => e('div', { className: 'animate-fade-in' }, [
     e('div', { className: 'bg-[#121212] text-white px-5 pt-8 pb-6 rounded-b-[24px] relative bg-gradient-to-b from-neutral-900 to-black shadow-lg' }, [
       e('div', { className: 'flex justify-between items-center mb-5' }, [
@@ -360,23 +360,26 @@ function App() {
         creatorTab === 'my_profile' && renderMyProfileTab()
       ]),
 
-      // --- 📌 STICKY PREMIUM BLACK & WHITE BOTTOM NAVIGATION BAR ---
+      // --- 📌 PREMIUM MONOCHROME ACTION BOLDING BOTTOM NAVIGATION BAR ---
       e('nav', { className: 'fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-xl border-t border-neutral-200/80 px-2 py-3 grid grid-cols-5 gap-1 z-50 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]' }, [
-        { id: 'home', label: 'Home', icon: '🏠' },
-        { id: 'search', label: 'Search', icon: '🔍' },
-        { id: 'monetization', label: 'Earnings', icon: '💰' },
-        { id: 'chats', label: 'Chats', icon: '💬' },
-        { id: 'my_profile', label: 'Profile', icon: '👤' }
+        { id: 'home', label: 'Home', outlineIcon: '○', boldIcon: '●' },
+        { id: 'search', label: 'Search', outlineIcon: '⌕', boldIcon: '🔍' },
+        { id: 'monetization', label: 'Earnings', outlineIcon: '◇', boldIcon: '◆' },
+        { id: 'chats', label: 'Chats', outlineIcon: '💬', boldIcon: '💬' },
+        { id: 'my_profile', label: 'Profile', outlineIcon: '👤', boldIcon: '👤' }
       ].map(tab => {
         const isCurrent = creatorTab === tab.id;
         return e('button', {
           key: tab.id,
           onClick: () => setCreatorTab(tab.id),
-          className: 'flex flex-col items-center justify-center py-0.5 rounded-xl transition-all relative ' + (isCurrent ? 'text-neutral-950 scale-105 font-black' : 'text-neutral-400 font-medium hover:text-neutral-600')
+          className: 'flex flex-col items-center justify-center py-0.5 rounded-xl transition-all relative ' + (isCurrent ? 'text-black scale-105 font-black' : 'text-neutral-400 font-medium hover:text-neutral-600')
         }, [
-          e('span', { className: 'text-[18px] mb-0.5' }, tab.icon),
+          e('span', { 
+            className: 'text-[18px] mb-0.5 transition-all ' + (isCurrent ? 'text-black font-black scale-110' : 'text-neutral-400'),
+            style: { color: isCurrent ? '#000000' : '#A3A3A3' }
+          }, isCurrent ? tab.boldIcon : tab.outlineIcon),
           e('span', { className: 'text-[9px] uppercase tracking-wider font-bold' }, tab.label),
-          isCurrent && e('div', { className: 'absolute -bottom-1 w-1.5 h-1.5 bg-neutral-950 rounded-full' })
+          isCurrent && e('div', { className: 'absolute -bottom-1 w-1.5 h-1.5 bg-black rounded-full' })
         ]);
       })),
 
@@ -417,7 +420,7 @@ function App() {
     ]);
   }
 
-  // --- ARRESTED DEAD END LOOP — INTERCEPTING ROUTER VIEWS DIRECTLY HERE ---
+  // --- ARRESTED DEAD END LOOP — INTERCEPTING ROUTER VIEWS ---
   if (currentPage === 'choose_track') {
     return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md relative' }, [
       renderAdminToggleButton(),
@@ -533,7 +536,7 @@ function App() {
     ]);
   }
 
-  // DEFAULT PROTECTION RENDER GATE: Fallback captures everything cleanly to landing setup views
+  // DEFAULT PROTECTION RENDER GATE
   return e('div', { className: 'min-h-screen bg-[#121212] text-white max-w-md mx-auto flex flex-col justify-between p-6 shadow-md relative' }, [
     renderAdminToggleButton(),
     isAdminViewOpen && renderInlineAdminController(),
