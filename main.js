@@ -8,22 +8,24 @@ function App() {
   const [userRole, setUserRole] = useState(() => localStorage.getItem('fatsocial_role') || '');
   const [fatcoinBalance, setFatcoinBalance] = useState(() => parseInt(localStorage.getItem('fatsocial_coins')) || 0);
 
-  // Layout, Gateway Payment and Form Controller States
+  // Layout & Global View Configurations
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isTopUpOpen, setIsTopUpOpen] = useState(false);
   const [unlockedCreators, setUnlockedCreators] = useState(() => JSON.parse(localStorage.getItem('fatsocial_unlocked')) || []);
   const [subscribedCreators, setSubscribedCreators] = useState(() => JSON.parse(localStorage.getItem('fatsocial_subs')) || []);
   
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  // Registration and Authentication Form Fields State Cache
+  const [fullName, setFullName] = useState(() => localStorage.getItem('fatsocial_cache_name') || '');
+  const [email, setEmail] = useState(() => localStorage.getItem('fatsocial_cache_email') || '');
+  const [password, setPassword] = useState(() => localStorage.getItem('fatsocial_cache_pass') || '');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [activeTab, setActiveTab] = useState('feed'); 
 
-  // Payment UI State Engine
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('crypto'); // 'crypto', 'naira', 'intl'
-  const [paymentStatus, setPaymentStatus] = useState('idle'); // 'idle', 'verifying'
+  // Payment Interface and Administrative State Routing
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('crypto'); // 'crypto', 'naira'
+  const [paymentStatus, setPaymentStatus] = useState(() => localStorage.getItem('fatsocial_pay_status') || 'idle'); // 'idle', 'verifying'
+  const [isAdminViewOpen, setIsAdminViewOpen] = useState(false);
 
   // Sync state cleanly with LocalStorage on refresh
   useEffect(() => {
@@ -32,7 +34,38 @@ function App() {
     localStorage.setItem('fatsocial_coins', fatcoinBalance);
     localStorage.setItem('fatsocial_unlocked', JSON.stringify(unlockedCreators));
     localStorage.setItem('fatsocial_subs', JSON.stringify(subscribedCreators));
-  }, [currentPage, userRole, fatcoinBalance, unlockedCreators, subscribedCreators]);
+    localStorage.setItem('fatsocial_pay_status', paymentStatus);
+    
+    // Form caching for structural safety
+    localStorage.setItem('fatsocial_cache_name', fullName);
+    localStorage.setItem('fatsocial_cache_email', email);
+    localStorage.setItem('fatsocial_cache_pass', password);
+  }, [currentPage, userRole, fatcoinBalance, unlockedCreators, subscribedCreators, paymentStatus, fullName, email, password]);
+
+  // Infinite Polling Loop: Checks if the admin has granted verification approval to this account profile
+  useEffect(() => {
+    let checkInterval = null;
+    if (paymentStatus === 'verifying') {
+      checkInterval = setInterval(() => {
+        const adminApprovalFlag = localStorage.getItem('fatsocial_admin_approved_trigger');
+        if (adminApprovalFlag === 'true') {
+          // Clear polling loop securely
+          clearInterval(checkInterval);
+          localStorage.removeItem('fatsocial_admin_approved_trigger');
+          
+          // Trigger successful account validation process steps
+          setPaymentStatus('idle');
+          setUserRole('creator');
+          
+          alert(`Verification Complete!\nAn automated validation confirmation has been sent to ${email || 'your email'}. Access granted.`);
+          setCurrentPage('dashboard');
+        }
+      }, 1500);
+    }
+    return () => {
+      if (checkInterval) clearInterval(checkInterval);
+    };
+  }, [paymentStatus, email]);
 
   const navigateTo = (page) => {
     setErrorMessage('');
@@ -49,6 +82,7 @@ function App() {
     setEmail('');
     setPassword('');
     setPaymentStatus('idle');
+    localStorage.removeItem('fatsocial_admin_approved_trigger');
     navigateTo('landing');
   };
 
@@ -61,15 +95,9 @@ function App() {
     navigateTo('payment_creator');
   };
 
-  const triggerPaymentVerification = () => {
+  const handleConfirmCreatorPayment = () => {
+    // Lock the interface down into an infinite verification checking stream
     setPaymentStatus('verifying');
-    
-    // Simulate an admin verification lookup delay before grant access
-    setTimeout(() => {
-      setPaymentStatus('idle');
-      setUserRole('creator');
-      navigateTo('dashboard');
-    }, 4500);
   };
 
   const handleAuthViewer = () => {
@@ -116,11 +144,56 @@ function App() {
     setSubscribedCreators(prev => [...prev, creatorId]);
   };
 
-  // --- SCREEN RENDERING LAYER CONTROLLER ---
+  // --- 2. FLOATING ADMINISTRATIVE OVERLAY PANEL ---
+  const renderInlineAdminController = () => {
+    return e('div', { className: 'fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-900 border border-red-500 text-white text-xs p-4 rounded-2xl shadow-2xl z-[9999] w-[90%] max-w-xs space-y-3' }, [
+      e('div', { className: 'flex justify-between items-center border-b border-gray-700 pb-1.5' }, [
+        e('span', { className: 'font-black text-red-400 tracking-wide uppercase' }, '🛠️ Admin Control Panel'),
+        e('button', { onClick: () => setIsAdminViewOpen(false), className: 'text-gray-400 font-bold px-1' }, '✕')
+      ]),
+      paymentStatus === 'verifying' ? 
+        e('div', { className: 'space-y-2' }, [
+          e('div', { className: 'bg-gray-800 p-2 rounded text-[11px] font-mono border border-gray-700' }, [
+            e('p', null, `NAME: ${fullName}`),
+            e('p', null, `EMAIL: ${email}`)
+          ]),
+          e('button', { 
+            onClick: () => localStorage.setItem('fatsocial_admin_approved_trigger', 'true'),
+            className: 'w-full bg-emerald-500 text-black font-black py-2 rounded-xl text-[11px] uppercase tracking-wider'
+          }, 'Approve User Account')
+        ]) : 
+        e('p', { className: 'text-gray-400 text-center py-2 italic text-[11px]' }, 'No accounts currently waiting for payment verification.')
+    ]);
+  };
+
+  // --- 3. LAYER ROUTER INTERFACE RENDERING ENGINE ---
   
-  // 1. Landing View
+  // Custom secret toggle button to load admin review console dynamically
+  const renderAdminToggleButton = () => (
+    e('button', { 
+      onClick: () => setIsAdminViewOpen(!isAdminViewOpen),
+      className: 'fixed top-2 right-2 opacity-10 bg-transparent text-white text-[10px] z-[9999] px-2 py-1'
+    }, '• admin console')
+  );
+
+  // View Loader Override: If verification is ongoing, forcefully loop the loading gate lock screen
+  if (paymentStatus === 'verifying') {
+    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col items-center justify-center p-6 text-center space-y-6 shadow-md relative' }, [
+      renderAdminToggleButton(),
+      isAdminViewOpen && renderInlineAdminController(),
+      e('div', { className: 'w-12 h-12 border-4 border-gray-100 border-t-[#121212] rounded-full animate-spin' }),
+      e('div', { className: 'space-y-2' }, [
+        e('h3', { className: 'font-black text-xl tracking-tight' }, 'Awaiting Verification'),
+        e('p', { className: 'text-xs text-gray-400 px-6 leading-relaxed font-medium' }, 'Please hold on while our automated administration system audits and verifies your setup fee submission.')
+      ])
+    ]);
+  }
+
+  // View 1: Main Platform Welcome Landing
   if (currentPage === 'landing') {
-    return e('div', { className: 'min-h-screen bg-[#121212] text-white max-w-md mx-auto flex flex-col justify-between p-6 shadow-md' }, [
+    return e('div', { className: 'min-h-screen bg-[#121212] text-white max-w-md mx-auto flex flex-col justify-between p-6 shadow-md relative' }, [
+      renderAdminToggleButton(),
+      isAdminViewOpen && renderInlineAdminController(),
       e('div', { key: 'hero', className: 'flex-1 flex flex-col justify-center items-center text-center space-y-5' }, [
         e('div', { key: 'logo', className: 'w-16 h-16 bg-white text-[#121212] rounded-2xl flex items-center justify-center shadow-md font-black text-2xl' }, 'F'),
         e('h1', { key: 'title', className: 'text-3xl font-black tracking-tight' }, 'FATSOCIAL'),
@@ -133,9 +206,11 @@ function App() {
     ]);
   }
 
-  // 2. Track Selector View
+  // View 2: Onboarding Flow Track Path Selector
   if (currentPage === 'choose_track') {
-    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' }, [
+    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md relative' }, [
+      renderAdminToggleButton(),
+      isAdminViewOpen && renderInlineAdminController(),
       e('button', { key: 'back', onClick: () => navigateTo('landing'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6 uppercase tracking-wider' }, '← Back'),
       e('h2', { key: 'title', className: 'text-3xl font-black tracking-tight mb-2' }, 'Choose Account Type'),
       e('p', { key: 'subtitle', className: 'text-xs text-gray-400 mb-6 font-medium' }, 'Select the customized interface suited for your platform profile.'),
@@ -166,9 +241,11 @@ function App() {
     ]);
   }
 
-  // 3. Sign In Portal
+  // View 3: Sign In Access Gate
   if (currentPage === 'signin') {
-    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' }, [
+    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md relative' }, [
+      renderAdminToggleButton(),
+      isAdminViewOpen && renderInlineAdminController(),
       e('button', { key: 'back', onClick: () => navigateTo('landing'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6 uppercase tracking-wider' }, '← Back'),
       e('h2', { key: 'title', className: 'text-3xl font-black tracking-tight mb-6' }, 'Welcome Back'),
       errorMessage && e('div', { className: 'bg-red-50 text-red-600 text-xs font-semibold p-3 rounded-xl mb-4' }, errorMessage),
@@ -193,9 +270,11 @@ function App() {
     ]);
   }
 
-  // 4. Creator Signup Portal (Matches image_13.png layout specs verbatim)
+  // View 4: Professional Creator Form Profile Account Setup
   if (currentPage === 'signup_creator') {
-    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' }, [
+    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md relative' }, [
+      renderAdminToggleButton(),
+      isAdminViewOpen && renderInlineAdminController(),
       e('button', { key: 'back', onClick: () => navigateTo('choose_track'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6 uppercase tracking-wider' }, '← Back'),
       e('h2', { key: 'title', className: 'text-3xl font-black tracking-tight mb-1' }, 'Create Creator Account'),
       e('p', { key: 'subtitle', className: 'text-xs text-gray-400 mb-6 font-medium' }, 'Register below to access active tasks and payouts.'),
@@ -232,27 +311,17 @@ function App() {
     ]);
   }
 
-  // 4B. Interactive Multi-Channel Payment Screen & Verification Interface
+  // View 4B: Platform Multi-Option Settlement Gateway Module
   if (currentPage === 'payment_creator') {
-    // If user clicked PAID, render the Waiting Verification Loader Interface immediately
-    if (paymentStatus === 'verifying') {
-      return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col items-center justify-center p-6 text-center space-y-6 shadow-md' }, [
-        e('div', { className: 'w-16 h-16 border-4 border-gray-100 border-t-[#121212] rounded-full animate-spin' }),
-        e('div', { className: 'space-y-2' }, [
-          e('h3', { className: 'font-black text-xl tracking-tight' }, 'Awaiting Verification'),
-          e('p', { className: 'text-xs text-gray-400 px-6 leading-relaxed font-medium' }, 'Please hold on while our automated administration system audits and verifies your setup fee submission.')
-        ])
-      ]);
-    }
-
-    // Default Interactive Choice Matrix View
-    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' }, [
+    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md relative' }, [
+      renderAdminToggleButton(),
+      isAdminViewOpen && renderInlineAdminController(),
       e('button', { onClick: () => navigateTo('signup_creator'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6 uppercase tracking-wider' }, '← Back'),
       
       e('h2', { className: 'text-2xl font-black tracking-tight mb-1' }, 'Complete Setup Fee'),
       e('p', { className: 'text-xs text-gray-400 mb-6 font-medium' }, 'Select your preferred channel to view account credentials.'),
 
-      // Option Selector Tabs
+      // Option Selector Tabs Menu
       e('div', { className: 'grid grid-cols-3 gap-2 mb-6 bg-[#F8F8FA] p-1 rounded-xl' }, [
         e('button', { 
           onClick: () => setSelectedPaymentMethod('crypto'), 
@@ -264,7 +333,6 @@ function App() {
         }, 'Naira Account'),
         e('button', { 
           disabled: true,
-          onClick: () => setSelectedPaymentMethod('intl'), 
           className: 'py-2.5 text-center text-xs font-black text-gray-300 rounded-lg opacity-60 cursor-not-allowed relative' 
         }, [
           e('div', null, 'Intl $'),
@@ -272,7 +340,7 @@ function App() {
         ])
       ]),
 
-      // Channel Container Target Output Box
+      // Target Address Information Output Box Container
       e('div', { className: 'flex-1 space-y-4' }, [
         selectedPaymentMethod === 'crypto' && e('div', { className: 'bg-[#F8F8FA] border rounded-2xl p-5 space-y-3' }, [
           e('div', { className: 'text-xs uppercase font-black text-gray-400 tracking-wider' }, 'Official Wallet Destination'),
@@ -291,17 +359,19 @@ function App() {
         ])
       ]),
 
-      // Actions Bottom Panel
+      // Settlement Call To Actions
       e('div', { className: 'space-y-2 pt-4' }, [
-        e('button', { onClick: triggerPaymentVerification, className: 'w-full bg-emerald-500 text-white font-black py-4 rounded-xl text-sm tracking-wide shadow-md uppercase active:scale-[0.99] transition-transform' }, 'I Have Paid'),
+        e('button', { onClick: handleConfirmCreatorPayment, className: 'w-full bg-emerald-500 text-white font-black py-4 rounded-xl text-sm tracking-wide shadow-md uppercase active:scale-[0.99] transition-transform' }, 'I Have Paid'),
         e('button', { onClick: () => navigateTo('signup_creator'), className: 'w-full bg-transparent text-gray-400 font-bold py-2 rounded-xl text-xs text-center' }, 'Cancel Checkout')
       ])
     ]);
   }
 
-  // 5. Viewer Signup Portal
+  // View 5: Consumer/Viewer Form Profile Onboarding Page
   if (currentPage === 'signup_viewer') {
-    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' }, [
+    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md relative' }, [
+      renderAdminToggleButton(),
+      isAdminViewOpen && renderInlineAdminController(),
       e('button', { key: 'back', onClick: () => navigateTo('choose_track'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6 uppercase tracking-wider' }, '← Back'),
       e('h2', { key: 'title', className: 'text-3xl font-black tracking-tight mb-1' }, 'Setup Viewer Profile'),
       e('p', { key: 'subtitle', className: 'text-xs text-gray-400 mb-6 font-medium' }, 'Register a consumer wallet profile to access catalogs.'),
@@ -331,9 +401,11 @@ function App() {
     ]);
   }
 
-  // 6A. Dashboard View - Creator Track
+  // View 6A: Authenticated Portal Content Creator Workspace
   if (currentPage === 'dashboard' && userRole === 'creator') {
     return e('div', { className: 'min-h-screen bg-[#F8F8FA] text-[#121212] max-w-md mx-auto relative shadow-md p-4 space-y-4' }, [
+      renderAdminToggleButton(),
+      isAdminViewOpen && renderInlineAdminController(),
       e('div', { className: 'bg-[#121212] text-white p-6 rounded-2xl flex justify-between items-center' }, [
         e('div', null, [
           e('div', { className: 'text-xs text-gray-400' }, 'Creator Monetization Platform'),
@@ -350,9 +422,11 @@ function App() {
     ]);
   }
 
-  // 6B. Dashboard View - General Viewer Track
+  // View 6B: Authenticated Portal Consumer/Viewer Media Discovery Shell
   if (currentPage === 'dashboard' && userRole === 'viewer') {
-    return e('div', { className: 'min-h-screen bg-[#F8F8FA] text-[#121212] max-w-md mx-auto shadow-md flex flex-col justify-between' }, [
+    return e('div', { className: 'min-h-screen bg-[#F8F8FA] text-[#121212] max-w-md mx-auto shadow-md flex flex-col justify-between relative' }, [
+      renderAdminToggleButton(),
+      isAdminViewOpen && renderInlineAdminController(),
       e('div', { className: 'bg-[#121212] text-white p-4 flex justify-between items-center' }, [
         e('div', null, [
           e('div', { className: 'text-[10px] uppercase font-bold text-gray-400' }, 'Fatcoin Balance'),
