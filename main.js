@@ -8,17 +8,22 @@ function App() {
   const [userRole, setUserRole] = useState(() => localStorage.getItem('fatsocial_role') || '');
   const [fatcoinBalance, setFatcoinBalance] = useState(() => parseInt(localStorage.getItem('fatsocial_coins')) || 0);
 
-  // Layout & Form Controller States
+  // Layout, Gateway Payment and Form Controller States
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isTopUpOpen, setIsTopUpOpen] = useState(false);
   const [unlockedCreators, setUnlockedCreators] = useState(() => JSON.parse(localStorage.getItem('fatsocial_unlocked')) || []);
   const [subscribedCreators, setSubscribedCreators] = useState(() => JSON.parse(localStorage.getItem('fatsocial_subs')) || []);
+  
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [activeTab, setActiveTab] = useState('feed'); 
+
+  // Payment UI State Engine
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('crypto'); // 'crypto', 'naira', 'intl'
+  const [paymentStatus, setPaymentStatus] = useState('idle'); // 'idle', 'verifying'
 
   // Sync state cleanly with LocalStorage on refresh
   useEffect(() => {
@@ -43,6 +48,7 @@ function App() {
     setFullName('');
     setEmail('');
     setPassword('');
+    setPaymentStatus('idle');
     navigateTo('landing');
   };
 
@@ -55,9 +61,15 @@ function App() {
     navigateTo('payment_creator');
   };
 
-  const handleConfirmCreatorPayment = () => {
-    setUserRole('creator');
-    navigateTo('dashboard');
+  const triggerPaymentVerification = () => {
+    setPaymentStatus('verifying');
+    
+    // Simulate an admin verification lookup delay before grant access
+    setTimeout(() => {
+      setPaymentStatus('idle');
+      setUserRole('creator');
+      navigateTo('dashboard');
+    }, 4500);
   };
 
   const handleAuthViewer = () => {
@@ -181,7 +193,7 @@ function App() {
     ]);
   }
 
-  // 4. Creator Signup Portal
+  // 4. Creator Signup Portal (Matches image_13.png layout specs verbatim)
   if (currentPage === 'signup_creator') {
     return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' }, [
       e('button', { key: 'back', onClick: () => navigateTo('choose_track'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6 uppercase tracking-wider' }, '← Back'),
@@ -220,23 +232,74 @@ function App() {
     ]);
   }
 
-  // 4B. Standalone Creator Bitcoin Payment Screen
+  // 4B. Interactive Multi-Channel Payment Screen & Verification Interface
   if (currentPage === 'payment_creator') {
-    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col justify-center p-6 shadow-md' }, [
-      e('div', { className: 'text-center space-y-5' }, [
-        e('div', { className: 'text-amber-500 font-black text-xl' }, '₿ Bitcoin Deposit'),
-        e('h3', { className: 'font-black text-xl text-gray-900 tracking-tight' }, 'Bitcoin Deposit Required'),
-        e('p', { className: 'text-xs text-gray-400 px-4 leading-relaxed' }, 'Send exactly $25.00 worth of BTC to the official address below to activate your premium workspace.'),
-        e('div', { className: 'bg-[#F8F8FA] p-4 rounded-xl border text-left font-mono text-xs break-all select-all font-bold text-gray-800' }, 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh'),
-        e('div', { className: 'space-y-2 pt-2' }, [
-          e('button', { onClick: handleConfirmCreatorPayment, className: 'w-full bg-emerald-500 text-white font-bold py-4 rounded-xl text-xs uppercase tracking-wide shadow-md' }, 'PAID'),
-          e('button', { onClick: () => navigateTo('signup_creator'), className: 'w-full bg-transparent text-gray-400 font-bold py-2 rounded-xl text-xs' }, 'Cancel Payment')
+    // If user clicked PAID, render the Waiting Verification Loader Interface immediately
+    if (paymentStatus === 'verifying') {
+      return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col items-center justify-center p-6 text-center space-y-6 shadow-md' }, [
+        e('div', { className: 'w-16 h-16 border-4 border-gray-100 border-t-[#121212] rounded-full animate-spin' }),
+        e('div', { className: 'space-y-2' }, [
+          e('h3', { className: 'font-black text-xl tracking-tight' }, 'Awaiting Verification'),
+          e('p', { className: 'text-xs text-gray-400 px-6 leading-relaxed font-medium' }, 'Please hold on while our automated administration system audits and verifies your setup fee submission.')
         ])
+      ]);
+    }
+
+    // Default Interactive Choice Matrix View
+    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' }, [
+      e('button', { onClick: () => navigateTo('signup_creator'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6 uppercase tracking-wider' }, '← Back'),
+      
+      e('h2', { className: 'text-2xl font-black tracking-tight mb-1' }, 'Complete Setup Fee'),
+      e('p', { className: 'text-xs text-gray-400 mb-6 font-medium' }, 'Select your preferred channel to view account credentials.'),
+
+      // Option Selector Tabs
+      e('div', { className: 'grid grid-cols-3 gap-2 mb-6 bg-[#F8F8FA] p-1 rounded-xl' }, [
+        e('button', { 
+          onClick: () => setSelectedPaymentMethod('crypto'), 
+          className: `py-2.5 text-center text-xs font-black rounded-lg transition-all ${selectedPaymentMethod === 'crypto' ? 'bg-white text-[#121212] shadow-sm' : 'text-gray-400'}` 
+        }, 'Crypto'),
+        e('button', { 
+          onClick: () => setSelectedPaymentMethod('naira'), 
+          className: `py-2.5 text-center text-xs font-black rounded-lg transition-all ${selectedPaymentMethod === 'naira' ? 'bg-white text-[#121212] shadow-sm' : 'text-gray-400'}` 
+        }, 'Naira Account'),
+        e('button', { 
+          disabled: true,
+          onClick: () => setSelectedPaymentMethod('intl'), 
+          className: 'py-2.5 text-center text-xs font-black text-gray-300 rounded-lg opacity-60 cursor-not-allowed relative' 
+        }, [
+          e('div', null, 'Intl $'),
+          e('div', { className: 'absolute -bottom-1 left-1/2 -translate-x-1/2 text-[7px] font-black bg-gray-200 text-gray-500 px-1 rounded uppercase tracking-tighter' }, 'soon')
+        ])
+      ]),
+
+      // Channel Container Target Output Box
+      e('div', { className: 'flex-1 space-y-4' }, [
+        selectedPaymentMethod === 'crypto' && e('div', { className: 'bg-[#F8F8FA] border rounded-2xl p-5 space-y-3' }, [
+          e('div', { className: 'text-xs uppercase font-black text-gray-400 tracking-wider' }, 'Official Wallet Destination'),
+          e('div', { className: 'font-mono text-xs font-bold break-all bg-white p-3 border rounded-xl select-all text-gray-800' }, 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh'),
+          e('p', { className: 'text-[11px] text-gray-400 leading-relaxed font-medium' }, 'Copy address above and transfer exactly $25.00 worth of BTC from your wallet application.')
+        ]),
+
+        selectedPaymentMethod === 'naira' && e('div', { className: 'bg-[#F8F8FA] border rounded-2xl p-5 space-y-3' }, [
+          e('div', { className: 'text-xs uppercase font-black text-gray-400 tracking-wider' }, 'Native Settlement Route'),
+          e('div', { className: 'bg-white p-4 border rounded-xl space-y-2 text-xs font-bold text-gray-800' }, [
+            e('div', { className: 'flex justify-between' }, [e('span', { className: 'text-gray-400' }, 'Bank:'), e('span', null, 'Wema Bank (FATSOCIAL Ecosystem)')]),
+            e('div', { className: 'flex justify-between' }, [e('span', { className: 'text-gray-400' }, 'Account:'), e('span', { className: 'select-all font-mono' }, '0123456789')]),
+            e('div', { className: 'flex justify-between' }, [e('span', { className: 'text-gray-400' }, 'Amount:'), e('span', null, '₦37,500')])
+          ]),
+          e('p', { className: 'text-[11px] text-gray-400 leading-relaxed font-medium' }, 'Perform a bank app transfer to the verified native processing details provided above.')
+        ])
+      ]),
+
+      // Actions Bottom Panel
+      e('div', { className: 'space-y-2 pt-4' }, [
+        e('button', { onClick: triggerPaymentVerification, className: 'w-full bg-emerald-500 text-white font-black py-4 rounded-xl text-sm tracking-wide shadow-md uppercase active:scale-[0.99] transition-transform' }, 'I Have Paid'),
+        e('button', { onClick: () => navigateTo('signup_creator'), className: 'w-full bg-transparent text-gray-400 font-bold py-2 rounded-xl text-xs text-center' }, 'Cancel Checkout')
       ])
     ]);
   }
 
-  // 5. Viewer Signup Portal (Updated to smoothly include FULL LEGAL NAME field matching image_11.png styles)
+  // 5. Viewer Signup Portal
   if (currentPage === 'signup_viewer') {
     return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col p-6 shadow-md' }, [
       e('button', { key: 'back', onClick: () => navigateTo('choose_track'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6 uppercase tracking-wider' }, '← Back'),
