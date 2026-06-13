@@ -17,6 +17,9 @@ function App() {
   const [unlockedCreators, setUnlockedCreators] = useState(() => JSON.parse(localStorage.getItem('fatsocial_unlocked')) || []);
   const [subscribedCreators, setSubscribedCreators] = useState(() => JSON.parse(localStorage.getItem('fatsocial_subs')) || []);
   
+  // --- PREMIUM TAB NAVIGATION ROUTER (Defaults to your Monetization page layout) ---
+  const [creatorTab, setCreatorTab] = useState(() => localStorage.getItem('fatsocial_creator_tab') || 'monetization');
+
   // Registration and Authentication Form Fields State Cache
   const [fullName, setFullName] = useState(() => localStorage.getItem('fatsocial_cache_name') || '');
   const [email, setEmail] = useState(() => localStorage.getItem('fatsocial_cache_email') || '');
@@ -26,8 +29,8 @@ function App() {
   const [activeTab, setActiveTab] = useState('feed'); 
 
   // Payment Interface and Administrative State Routing
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('crypto'); // 'crypto', 'naira'
-  const [paymentStatus, setPaymentStatus] = useState(() => localStorage.getItem('fatsocial_pay_status') || 'idle'); // 'idle', 'verifying'
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('crypto'); 
+  const [paymentStatus, setPaymentStatus] = useState(() => localStorage.getItem('fatsocial_pay_status') || 'idle'); 
   const [isAdminViewOpen, setIsAdminViewOpen] = useState(false);
 
   // --- PLATFORM TASK SYSTEM STATE STORAGE ---
@@ -52,11 +55,12 @@ function App() {
     localStorage.setItem('fatsocial_subs', JSON.stringify(subscribedCreators));
     localStorage.setItem('fatsocial_pay_status', paymentStatus);
     localStorage.setItem('fatsocial_tasks_database', JSON.stringify(tasks));
+    localStorage.setItem('fatsocial_creator_tab', creatorTab);
     
     localStorage.setItem('fatsocial_cache_name', fullName);
     localStorage.setItem('fatsocial_cache_email', email);
     localStorage.setItem('fatsocial_cache_pass', password);
-  }, [currentPage, userRole, fatcoinBalance, creatorEarnings, unlockedCreators, subscribedCreators, paymentStatus, tasks, fullName, email, password]);
+  }, [currentPage, userRole, fatcoinBalance, creatorEarnings, unlockedCreators, subscribedCreators, paymentStatus, tasks, creatorTab, fullName, email, password]);
 
   // Infinite Polling Loop: Checks if the admin has granted verification approval
   useEffect(() => {
@@ -97,6 +101,7 @@ function App() {
     setEmail('');
     setPassword('');
     setPaymentStatus('idle');
+    setCreatorTab('monetization');
     localStorage.removeItem('fatsocial_admin_approved_trigger');
     navigateTo('landing');
   };
@@ -161,39 +166,39 @@ function App() {
     setCreatorEarnings(prev => prev + rewardValue);
   };
 
-  // --- 2. FLOATING ADMINISTRATIVE OVERLAY PANEL ---
+  // --- FLOATING ADMINISTRATIVE OVERLAY PANEL ---
   const renderInlineAdminController = () => {
     const hasPendingUser = paymentStatus === 'verifying' && fullName && email;
     const pendingTasks = tasks.filter(t => t.status === 'pending');
 
-    return e('div', { className: 'fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-900 border border-red-500 text-white text-xs p-4 rounded-2xl shadow-2xl z-[9999] w-[90%] max-w-xs space-y-3' }, [
-      e('div', { className: 'flex justify-between items-center border-b border-gray-700 pb-1.5' }, [
-        e('span', { className: 'font-black text-red-400 tracking-wide uppercase text-[11px]' }, '🛠️ Admin Control Panel'),
-        e('button', { onClick: () => setIsAdminViewOpen(false), className: 'text-gray-400 font-bold px-1 text-sm' }, '✕')
+    return e('div', { className: 'fixed bottom-24 left-1/2 -translate-x-1/2 bg-neutral-900 border border-neutral-700 text-white text-xs p-4 rounded-2xl shadow-2xl z-[9999] w-[90%] max-w-xs space-y-3' }, [
+      e('div', { className: 'flex justify-between items-center border-b border-neutral-800 pb-1.5' }, [
+        e('span', { className: 'font-black text-white tracking-wide uppercase text-[10px]' }, '🛠️ Admin Control Panel'),
+        e('button', { onClick: () => setIsAdminViewOpen(false), className: 'text-neutral-500 font-bold px-1 text-sm' }, '✕')
       ]),
-      hasPendingUser && e('div', { className: 'space-y-2 border-b border-gray-800 pb-2' }, [
-        e('div', { className: 'bg-gray-800 p-2.5 rounded-xl text-[11px] font-mono border border-gray-700 space-y-1' }, [
-          e('p', { className: 'text-gray-400 font-bold text-[10px] uppercase' }, 'Awaiting Verification Account:'),
+      hasPendingUser && e('div', { className: 'space-y-2 border-b border-neutral-800 pb-2' }, [
+        e('div', { className: 'bg-neutral-950 p-2.5 rounded-xl text-[11px] font-mono border border-neutral-800 space-y-1' }, [
+          e('p', { className: 'text-neutral-500 font-bold text-[10px] uppercase' }, 'Awaiting Account:'),
           e('p', { className: 'text-white font-bold' }, `NAME: ${fullName}`),
-          e('p', { className: 'text-blue-400' }, `EMAIL: ${email}`),
-          e('p', { className: 'text-amber-400' }, `FEE STATUS: $25.00 Pending`)
+          e('p', { className: 'text-neutral-300' }, `EMAIL: ${email}`),
+          e('p', { className: 'text-neutral-400' }, `FEE STATUS: $25.00 Pending`)
         ]),
         e('button', { 
           onClick: () => localStorage.setItem('fatsocial_admin_approved_trigger', 'true'),
-          className: 'w-full bg-emerald-500 text-black font-black py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform'
+          className: 'w-full bg-white text-black font-black py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-md'
         }, 'Approve User Account')
       ]),
       pendingTasks.length > 0 ? e('div', { className: 'space-y-2 pt-1' }, [
-        e('p', { className: 'text-[10px] font-black text-amber-400 uppercase tracking-wider' }, '📬 Pending Task Submissions:'),
-        pendingTasks.map(t => e('div', { key: t.id, className: 'bg-gray-800 p-2 rounded-xl text-[10px] font-mono space-y-1.5 border border-gray-700' }, [
-          e('div', { className: 'flex justify-between font-bold' }, [e('span', { className: 'text-white' }, t.title), e('span', { className: 'text-emerald-400' }, `$${t.reward.toFixed(2)}`)]),
-          e('div', { className: 'text-blue-400 truncate underline text-[9px] select-all' }, t.proofUrl),
+        e('p', { className: 'text-[10px] font-black text-neutral-400 uppercase tracking-wider' }, '📬 Pending Tasks:'),
+        pendingTasks.map(t => e('div', { key: t.id, className: 'bg-neutral-950 p-2 rounded-xl text-[10px] font-mono space-y-1.5 border border-neutral-800' }, [
+          e('div', { className: 'flex justify-between font-bold' }, [e('span', { className: 'text-white' }, t.title), e('span', { className: 'text-white' }, `$${t.reward.toFixed(2)}`)]),
+          e('div', { className: 'text-neutral-400 truncate text-[9px]' }, t.proofUrl),
           e('button', {
             onClick: () => handleAdminApproveTask(t.id, t.reward),
-            className: 'w-full bg-amber-400 text-black font-black py-1.5 rounded-lg text-[10px] uppercase tracking-wide'
+            className: 'w-full bg-white text-black font-black py-1.5 rounded-lg text-[10px] uppercase tracking-wide'
           }, 'Approve Task Payout')
         ]))
-      ]) : (!hasPendingUser && e('p', { className: 'text-gray-400 text-center py-4 italic text-[11px]' }, 'No actions awaiting administrative review.'))
+      ]) : (!hasPendingUser && e('p', { className: 'text-neutral-500 text-center py-4 italic text-[11px]' }, 'No actions awaiting review.'))
     ]);
   };
 
@@ -204,20 +209,178 @@ function App() {
     }, '• admin console')
   );
 
-  // View Loader Override: Gate Lock Screen during Verification Verification Processing
+  // --- NEW MONOCHROME ADDITIONS: SUB-VIEWS INJECTED INTO NAVIGATION MATRIX ---
+  
+  const renderHomeTab = () => e('div', { className: 'p-5 space-y-4 animate-fade-in' }, [
+    e('div', { className: 'bg-white p-6 rounded-[24px] border border-neutral-200/60 shadow-xs space-y-1' }, [
+      e('h2', { className: 'font-black text-xl tracking-tight text-neutral-900' }, 'FATSOCIAL Workspace'),
+      e('p', { className: 'text-xs text-neutral-400 font-medium' }, 'All systems running normally. Your creator pipeline is fully online.')
+    ]),
+    e('div', { className: 'bg-neutral-900 text-white p-6 rounded-[24px] space-y-3' }, [
+      e('div', { className: 'flex justify-between items-center' }, [
+        e('h3', { className: 'font-black text-xs tracking-wider text-neutral-400 uppercase' }, 'Overview Performance'),
+        e('span', { className: 'text-[10px] bg-neutral-800 px-2 py-0.5 rounded-md font-bold' }, 'Live')
+      ]),
+      e('p', { className: 'text-xs text-neutral-300 font-medium leading-relaxed' }, 'Task verification channels are currently optimized. Submissions securely forward direct validation alerts to the administrative audit desk layer.')
+    ])
+  ]);
+
+  const renderSearchTab = () => e('div', { className: 'p-5 space-y-4 animate-fade-in' }, [
+    e('div', { className: 'relative' }, [
+      e('input', { 
+        type: 'text', 
+        placeholder: 'Search tasks, brand opportunities, campaigns...', 
+        className: 'w-full bg-white border border-neutral-200 rounded-xl px-4 py-3.5 text-xs font-medium focus:outline-none focus:border-neutral-950' 
+      })
+    ]),
+    e('p', { className: 'text-[10px] font-black text-neutral-400 uppercase tracking-wider pl-1' }, 'Active Platforms Catalog'),
+    e('div', { className: 'grid grid-cols-2 gap-3' }, 
+      ['TikTok Media', 'Facebook Video', 'Instagram Reach', 'Premium Sounds'].map(tag => 
+        e('div', { key: tag, className: 'bg-white p-4 rounded-xl border border-neutral-100 text-xs font-black text-neutral-800 text-center shadow-3xs' }, tag)
+      )
+    )
+  ]);
+
+  const renderChatsTab = () => e('div', { className: 'p-5 space-y-3 animate-fade-in' }, [
+    e('h2', { className: 'font-black text-xl tracking-tight text-neutral-900 mb-2 pl-1' }, 'Messages'),
+    e('div', { className: 'bg-white rounded-2xl border border-neutral-100 divide-y divide-neutral-100' }, [
+      { name: 'System Auditor', msg: 'Your professional framework access has been successfully configured.', time: 'Just Now' },
+      { name: 'Campaign Desk Node', msg: 'New monetization opportunities match your deployment tracking criteria.', time: '4h ago' }
+    ].map((chat, idx) => e('div', { key: idx, className: 'p-4 flex justify-between items-center cursor-pointer active:bg-neutral-50/50' }, [
+      e('div', { className: 'space-y-0.5 flex-1 pr-2' }, [
+        e('div', { className: 'font-black text-xs text-neutral-900' }, chat.name),
+        e('p', { className: 'text-[11px] text-neutral-400 font-medium truncate max-w-[220px]' }, chat.msg)
+      ]),
+      e('span', { className: 'text-[9px] font-bold text-neutral-400 whitespace-nowrap' }, chat.time)
+    ])))
+  ]);
+
+  const renderMyProfileTab = () => e('div', { className: 'p-5 space-y-4 animate-fade-in' }, [
+    e('div', { className: 'bg-white border border-neutral-200/80 rounded-[24px] p-6 text-center space-y-4 shadow-3xs' }, [
+      e('div', { className: 'w-16 h-16 bg-neutral-900 text-white rounded-2xl mx-auto flex items-center justify-center font-black text-xl shadow-sm' }, fullName ? fullName.charAt(0).toUpperCase() : 'F'),
+      e('div', { className: 'space-y-0.5' }, [
+        e('h2', { className: 'font-black text-base text-neutral-900 tracking-tight' }, fullName || 'FATSOCIAL Creator'),
+        e('p', { className: 'text-[11px] text-neutral-400 font-mono font-medium' }, email || 'account@fatsocial.github.io')
+      ]),
+      e('div', { className: 'pt-3 border-t border-neutral-100 flex justify-around text-center' }, [
+        ['Verification', 'Active ✔️'], ['Tier Class', 'Premium Pro']
+      ].map(([lbl, val]) => e('div', { key: lbl }, [
+        e('span', { className: 'block text-[9px] font-black text-neutral-400 uppercase tracking-wider mb-0.5' }, lbl),
+        e('span', { className: 'text-xs font-black text-neutral-900' }, val)
+      ])))
+    ]),
+    e('button', { 
+      onClick: handleLogout, 
+      className: 'w-full bg-neutral-50 text-neutral-900 border border-neutral-200 font-black py-3.5 rounded-xl text-xs uppercase tracking-wide shadow-3xs active:scale-98 transition-transform' 
+    }, 'Log Out System Session')
+  ]);
+
+  // --- UNTOUCHED ORIGINAL MONETIZATION VIEW BLOCK (FROM image_4.png) ---
+  const renderMonetizationTab = () => e('div', { className: 'animate-fade-in' }, [
+    // Header container locked to exact layout styling specifications
+    e('div', { className: 'bg-[#121212] text-white px-5 pt-8 pb-6 rounded-b-[24px] relative bg-gradient-to-b from-neutral-900 to-black shadow-lg' }, [
+      e('div', { className: 'flex justify-between items-center mb-5' }, [
+        e('button', { onClick: () => setCreatorTab('my_profile'), className: 'text-white text-xl font-medium focus:outline-none' }, '‹'),
+        e('div', { className: 'flex space-x-4 items-center' }, [
+          e('span', { className: 'text-white text-lg cursor-pointer' }, '🏳️'),
+          e('span', { className: 'text-white text-lg cursor-pointer' }, '⚙️')
+        ])
+      ]),
+      e('div', { className: 'space-y-1' }, [
+        e('div', { className: 'text-sm font-semibold text-gray-400/80 tracking-wide' }, 'Monetization'),
+        e('div', { className: 'flex items-center space-x-1.5' }, [
+          e('span', { className: 'text-3xl font-black tracking-tight' }, `$${creatorEarnings.toFixed(2)}`),
+          e('span', { className: 'text-gray-400 font-bold text-sm pt-1' }, '›')
+        ]),
+        e('div', { className: 'text-[11px] text-gray-500 font-medium flex items-center space-x-1' }, [
+          e('span', null, 'Estimated rewards in the last 7 days'),
+          e('span', { className: 'w-3 h-3 rounded-full border border-gray-600 inline-flex items-center justify-center text-[8px] text-gray-400' }, 'i')
+        ])
+      ]),
+      e('div', { className: 'mt-5 bg-white/[0.06] backdrop-blur-md border border-white/5 rounded-xl px-4 py-3 flex justify-between items-center text-xs font-semibold' }, [
+        e('div', { className: 'text-gray-300' }, `Balance: $${creatorEarnings.toFixed(2)}`),
+        e('div', { className: 'text-gray-400 font-bold flex items-center' }, ['View ', e('span', { className: 'text-[10px] pl-0.5' }, '›')])
+      ])
+    ]),
+
+    // Analytics section panel block
+    e('div', { className: 'bg-white mt-3 p-4 border-b border-gray-100 flex flex-col space-y-3 shadow-xs' }, [
+      e('div', { className: 'flex justify-between items-center' }, [
+        e('h3', { className: 'font-black text-sm tracking-tight text-gray-900' }, 'Rewards analytics'),
+        e('span', { className: 'text-xs font-bold text-gray-400 flex items-center' }, ['View all ', e('span', { className: 'text-[9px] pl-0.5' }, '›')])
+      ]),
+      e('div', { className: 'bg-[#F8F8FA] rounded-xl p-4 space-y-1 border border-gray-50/50' }, [
+        e('div', { className: 'text-xl font-black tracking-tight text-gray-900' }, `$${creatorEarnings.toFixed(2)}`),
+        e('div', { className: 'text-[11px] text-gray-500 font-semibold' }, 'LIVE rewards'),
+        e('div', { className: 'text-[11px] text-gray-400 font-bold' }, '0.0% 7d')
+      ])
+    ]),
+
+    // Active program blocks bar preview 
+    e('div', { className: 'bg-white mt-3 p-4 border-b border-gray-100 space-y-3' }, [
+      e('h3', { className: 'font-black text-sm tracking-tight text-gray-900' }, 'Active programs'),
+      e('div', { className: 'flex flex-col items-start space-y-1.5' }, [
+        e('div', { className: 'w-11 h-11 bg-[#F8F8FA] rounded-xl flex items-center justify-center border border-gray-100 shadow-2xs' }, '🎁'),
+        e('span', { className: 'text-[11px] font-black text-gray-900 tracking-tight' }, 'LIVE rewards')
+      ])
+    ]),
+
+    // Task Campaign Integration lists elements
+    e('div', { className: 'bg-white mt-3 p-4 space-y-3' }, [
+      e('div', { className: 'flex justify-between items-center mb-1' }, [
+        e('div', { className: 'flex items-center space-x-1' }, [
+          e('h3', { className: 'font-black text-sm tracking-tight text-gray-900' }, 'Programs for you'),
+          e('span', { className: 'w-3 h-3 rounded-full border border-gray-300 inline-flex items-center justify-center text-[8px] text-gray-400 font-bold' }, 'i')
+        ]),
+        e('span', { className: 'text-xs font-bold text-gray-400 flex items-center' }, ['View all ', e('span', { className: 'text-[9px] pl-0.5' }, '›')])
+      ]),
+      
+      tasks.map(task => {
+        let actionColorText = 'text-gray-400';
+        if (task.status === 'pending') actionColorText = 'text-neutral-900 font-bold';
+        if (task.status === 'approved') actionColorText = 'text-neutral-900 font-bold';
+
+        return e('div', { 
+          key: task.id, 
+          onClick: () => task.status === 'available' && openSubmissionDrawer(task),
+          className: 'flex items-start justify-between py-3 border-b border-gray-100 last:border-0 cursor-pointer active:bg-gray-50/50 rounded-lg px-1' 
+        }, [
+          e('div', { className: 'flex space-x-3 items-start flex-1 pr-2' }, [
+            e('div', { className: 'text-lg pt-0.5' }, task.network === 'TikTok' ? '🎵' : task.network === 'Facebook' ? '🧰' : '⭐'),
+            e('div', { className: 'space-y-0.5 flex-1' }, [
+              e('div', { className: 'flex items-center space-x-2' }, [
+                e('h4', { className: 'font-black text-[13px] text-gray-900 tracking-tight' }, task.title),
+                e('span', { className: 'bg-gray-100 text-gray-500 text-[9px] font-black px-1.5 py-0.5 rounded flex items-center space-x-0.5' }, [
+                  e('span', { className: 'text-[7px]' }, '🔒'), e('span', null, task.lockStatus)
+                ])
+              ]),
+              e('p', { className: 'text-[11px] text-gray-400 font-medium leading-normal' }, task.desc),
+              task.status === 'pending' && e('div', { className: 'text-[9px] font-mono text-neutral-800 pt-1 truncate max-w-[200px]' }, `Awaiting Verification Link...`),
+              task.status === 'approved' && e('div', { className: 'text-[9px] font-bold text-neutral-900 pt-1' }, '✓ Payout successfully credited to wallet balance')
+            ])
+          ]),
+          e('div', { className: 'flex items-center space-x-1 self-center text-xs' }, [
+            task.status === 'available' ? e('span', { className: 'text-xs text-gray-300 font-bold' }, '›') : e('span', { className: `text-[10px] ${actionColorText}` }, task.status)
+          ])
+        ]);
+      })
+    ])
+  ]);
+
+  // Gate screen verification layer layout
   if (paymentStatus === 'verifying') {
-    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col items-center justify-center p-6 text-center space-y-6 shadow-md relative' }, [
+    return e('div', { className: 'min-h-screen bg-white text-[#121212] max-w-md mx-auto flex flex-col items-center justify-center p-6 text-center shadow-md relative' }, [
       renderAdminToggleButton(),
       isAdminViewOpen && renderInlineAdminController(),
-      e('div', { className: 'w-12 h-12 border-4 border-gray-100 border-t-[#121212] rounded-full animate-spin' }),
-      e('div', { className: 'space-y-2' }, [
+      e('div', { className: 'w-12 h-12 border-4 border-neutral-100 border-t-neutral-950 rounded-full animate-spin' }),
+      e('div', { className: 'space-y-2 mt-4' }, [
         e('h3', { className: 'font-black text-xl tracking-tight' }, 'Awaiting Verification'),
-        e('p', { className: 'text-xs text-gray-400 px-6 leading-relaxed font-medium' }, 'Please hold on while our automated administration system audits and verifies your setup fee submission.')
+        e('p', { className: 'text-xs text-gray-400 px-6 font-medium' }, 'Please hold on while our automated system checks your submission setup fee status.')
       ])
     ]);
   }
 
-  // --- STANDARD APPLICATION ROUTER SYSTEM VIEWS ---
+  // Handle Authentication Landing State routing
   if (currentPage === 'landing') {
     return e('div', { className: 'min-h-screen bg-[#121212] text-white max-w-md mx-auto flex flex-col justify-between p-6 shadow-md relative' }, [
       renderAdminToggleButton(),
@@ -225,11 +388,11 @@ function App() {
       e('div', { className: 'flex-1 flex flex-col justify-center items-center text-center space-y-5' }, [
         e('div', { className: 'w-16 h-16 bg-white text-[#121212] rounded-2xl flex items-center justify-center shadow-md font-black text-2xl' }, 'F'),
         e('h1', { className: 'text-3xl font-black tracking-tight' }, 'FATSOCIAL'),
-        e('p', { className: 'text-xs text-gray-400 max-w-xs leading-relaxed' }, 'Connect directly with premium elite skills marketplaces.')
+        e('p', { className: 'text-xs text-gray-400 max-w-xs' }, 'Connect directly with premium elite skills marketplaces.')
       ]),
       e('div', { className: 'space-y-3 pb-6' }, [
-        e('button', { onClick: () => navigateTo('choose_track'), className: 'w-full bg-white text-[#121212] font-bold py-4 rounded-xl text-sm' }, 'Create Account'),
-        e('button', { onClick: () => navigateTo('signin'), className: 'w-full bg-transparent border border-white/20 font-bold py-4 rounded-xl text-sm text-white' }, 'Sign In Account')
+        e('button', { onClick: () => navigateTo('choose_track'), className: 'w-full bg-white text-[#121212] font-bold py-4 rounded-xl text-sm shadow-sm' }, 'Create Account'),
+        e('button', { onClick: () => navigateTo('signin'), className: 'w-full bg-transparent border border-white/20 font-bold py-4 rounded-xl text-sm text-white text-center' }, 'Sign In Account')
       ])
     ]);
   }
@@ -247,14 +410,14 @@ function App() {
             e('span', { className: 'text-lg' }, '🏆'),
             e('h3', { className: 'font-black text-base' }, 'Content Creator Career')
           ]),
-          e('p', { className: 'text-xs text-gray-500 font-medium leading-relaxed pl-7' }, 'Access analytics dashboards, earn system payouts via tasks, design premium subscriptions, and monetize tools.')
+          e('p', { className: 'text-xs text-gray-500 font-medium pl-7' }, 'Access analytics dashboards, earn system payouts via tasks, design premium subscriptions, and monetize tools.')
         ]),
-        e('div', { onClick: () => navigateTo('signup_viewer'), className: 'border border-gray-200 p-5 rounded-2xl cursor-pointer bg-white' }, [
+        e('div', { onClick: () => navigateTo('signup_viewer'), className: 'border border-neutral-200 p-5 rounded-2xl cursor-pointer bg-white' }, [
           e('div', { className: 'flex items-center space-x-2.5 mb-2' }, [
             e('span', { className: 'text-lg' }, '👁️'),
             e('h3', { className: 'font-black text-base' }, 'General Consumer / Viewer')
           ]),
-          e('p', { className: 'text-xs text-gray-500 font-medium leading-relaxed pl-7' }, 'Discover professional skills showcase pools, follow creators, or send media tokens.')
+          e('p', { className: 'text-xs text-gray-500 font-medium pl-7' }, 'Discover professional skills showcase pools, follow creators, or send media tokens.')
         ])
       ])
     ]);
@@ -266,7 +429,7 @@ function App() {
       isAdminViewOpen && renderInlineAdminController(),
       e('button', { onClick: () => navigateTo('landing'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6 uppercase tracking-wider' }, '← Back'),
       e('h2', { className: 'text-3xl font-black tracking-tight mb-6' }, 'Welcome Back'),
-      errorMessage && e('div', { className: 'bg-red-50 text-red-600 text-xs font-semibold p-3 rounded-xl mb-4' }, errorMessage),
+      errorMessage && e('div', { className: 'bg-neutral-50 text-neutral-900 text-xs font-semibold p-3 rounded-xl mb-4 border' }, errorMessage),
       e('div', { className: 'space-y-4 flex-1' }, [
         e('div', null, [
           e('label', { className: 'block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-wider' }, 'EMAIL ADDRESS'),
@@ -291,7 +454,7 @@ function App() {
       e('button', { onClick: () => navigateTo('choose_track'), className: 'flex items-center text-xs font-bold text-gray-400 mt-4 mb-6 uppercase tracking-wider' }, '← Back'),
       e('h2', { className: 'text-3xl font-black tracking-tight mb-1' }, 'Create Creator Account'),
       e('p', { className: 'text-xs text-gray-400 mb-6 font-medium' }, 'Register below to access active tasks and payouts.'),
-      errorMessage && e('div', { className: 'bg-red-50 text-red-600 text-xs font-semibold p-3 rounded-xl mb-4' }, errorMessage),
+      errorMessage && e('div', { className: 'bg-neutral-50 text-neutral-900 text-xs font-semibold p-3 rounded-xl mb-4 border' }, errorMessage),
       
       e('div', { className: 'space-y-4 flex-1' }, [
         e('div', null, [
@@ -309,7 +472,7 @@ function App() {
             e('button', { onClick: () => setShowPassword(!showPassword), className: 'absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs' }, '👁️')
           ])
         ]),
-        e('div', { className: 'bg-[#F8F8FA] p-4 rounded-xl flex items-center justify-between text-xs mt-2' }, [
+        e('div', { className: 'bg-[#F8F8FA] p-4 rounded-xl flex items-center justify-between text-xs mt-2 border border-neutral-100' }, [
           e('div', { className: 'flex flex-col space-y-0.5' }, [
             e('span', { className: 'font-bold text-gray-900 text-sm' }, 'One-Time Setup Fee'),
             e('span', { className: 'text-gray-400 font-medium text-[11px]' }, 'Includes verified platform dashboard access')
@@ -348,7 +511,7 @@ function App() {
         ])
       ]),
       e('div', { className: 'space-y-2 pt-4' }, [
-        e('button', { onClick: handleConfirmCreatorPayment, className: 'w-full bg-emerald-500 text-white font-black py-4 rounded-xl text-sm tracking-wide shadow-md uppercase' }, 'I Have Paid'),
+        e('button', { onClick: handleConfirmCreatorPayment, className: 'w-full bg-neutral-900 text-white font-black py-4 rounded-xl text-sm tracking-wide shadow-md uppercase' }, 'I Have Paid'),
         e('button', { onClick: () => navigateTo('signup_creator'), className: 'w-full bg-transparent text-gray-400 font-bold py-2 rounded-xl text-xs text-center' }, 'Cancel Checkout')
       ])
     ]);
@@ -379,136 +542,50 @@ function App() {
     ]);
   }
 
-  // --- 3. REPLICATED MY PROFILE DASHBOARD VIEW FROM image_2.png ---
+  // --- MAIN DUAL-TRACK CREATOR DASHBOARD FRAME CONTAINER ---
   if (currentPage === 'dashboard' && userRole === 'creator') {
-    return e('div', { className: 'min-h-screen bg-[#F4F4F6] text-[#121212] max-w-md mx-auto relative shadow-md overflow-x-hidden pb-12 font-sans' }, [
-      renderAdminToggleButton(),
-      isAdminViewOpen && renderInlineAdminController(),
-      
-      // --- IMAGE SPECIFIC HEADER BLOCK ---
-      e('div', { className: 'bg-[#121212] text-white px-5 pt-8 pb-6 rounded-b-[24px] relative bg-gradient-to-b from-neutral-900 to-black shadow-lg' }, [
-        // Navigation Options Controls Bar
-        e('div', { className: 'flex justify-between items-center mb-5' }, [
-          e('button', { onClick: handleLogout, className: 'text-white text-xl font-medium focus:outline-none' }, '‹'),
-          e('div', { className: 'flex space-x-4 items-center' }, [
-            e('span', { className: 'text-white text-lg cursor-pointer' }, '🏳️'),
-            e('span', { className: 'text-white text-lg cursor-pointer' }, '⚙️')
-          ])
-        ]),
-
-        // Earnings and Counter Values
-        e('div', { className: 'space-y-1' }, [
-          e('div', { className: 'text-sm font-semibold text-gray-400/80 tracking-wide' }, 'Monetization'),
-          e('div', { className: 'flex items-center space-x-1.5' }, [
-            e('span', { className: 'text-3xl font-black tracking-tight' }, `$${creatorEarnings.toFixed(2)}`),
-            e('span', { className: 'text-gray-400 font-bold text-sm pt-1' }, '›')
-          ]),
-          e('div', { className: 'text-[11px] text-gray-500 font-medium flex items-center space-x-1' }, [
-            e('span', null, 'Estimated rewards in the last 7 days'),
-            e('span', { className: 'w-3 h-3 rounded-full border border-gray-600 inline-flex items-center justify-center text-[8px] text-gray-400' }, 'i')
-          ])
-        ]),
-
-        // Nested Secondary Balance strip
-        e('div', { className: 'mt-5 bg-white/[0.06] backdrop-blur-md border border-white/5 rounded-xl px-4 py-3 flex justify-between items-center text-xs font-semibold' }, [
-          e('div', { className: 'text-gray-300' }, `Balance: $${creatorEarnings.toFixed(2)}`),
-          e('div', { className: 'text-gray-400 font-bold flex items-center' }, ['View ', e('span', { className: 'text-[10px] pl-0.5' }, '›')])
-        ])
+    return e('div', { className: 'min-h-screen bg-[#F4F4F6] text-[#121212] max-w-md mx-auto relative shadow-md pb-24 font-sans flex flex-col justify-between overflow-x-hidden' }, [
+      e('div', { className: 'flex-1 w-full' }, [
+        creatorTab === 'home' && renderHomeTab(),
+        creatorTab === 'search' && renderSearchTab(),
+        creatorTab === 'monetization' && renderMonetizationTab(),
+        creatorTab === 'chats' && renderChatsTab(),
+        creatorTab === 'my_profile' && renderMyProfileTab()
       ]),
 
-      // --- REWARDS ANALYTICS ACCORDION PANEL SECTION ---
-      e('div', { className: 'bg-white mt-3 p-4 border-b border-gray-100 flex flex-col space-y-3 shadow-xs' }, [
-        e('div', { className: 'flex justify-between items-center' }, [
-          e('h3', { className: 'font-black text-sm tracking-tight text-gray-900' }, 'Rewards analytics'),
-          e('span', { className: 'text-xs font-bold text-gray-400 flex items-center' }, ['View all ', e('span', { className: 'text-[9px] pl-0.5' }, '›')])
-        ]),
-        e('div', { className: 'bg-[#F8F8FA] rounded-xl p-4 space-y-1 border border-gray-50/50' }, [
-          e('div', { className: 'text-xl font-black tracking-tight text-gray-900' }, `$${creatorEarnings.toFixed(2)}`),
-          e('div', { className: 'text-[11px] text-gray-500 font-semibold' }, 'LIVE rewards'),
-          e('div', { className: 'text-[11px] text-gray-400 font-bold' }, '0.0% 7d')
-        ])
-      ]),
+      // --- 📌 STICKY PREMIUM BLACK & WHITE BOTTOM NAVIGATION BAR ---
+      e('nav', { className: 'fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-xl border-t border-neutral-200/80 px-2 py-3 grid grid-cols-5 gap-1 z-50 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]' }, [
+        { id: 'home', label: 'Home', icon: '🏠' },
+        { id: 'search', label: 'Search', icon: '🔍' },
+        { id: 'monetization', label: 'Earnings', icon: '💰' },
+        { id: 'chats', label: 'Chats', icon: '💬' },
+        { id: 'my_profile', label: 'Profile', icon: '👤' }
+      ].map(tab => {
+        const isCurrent = creatorTab === tab.id;
+        return e('button', {
+          key: tab.id,
+          onClick: () => setCreatorTab(tab.id),
+          className: 'flex flex-col items-center justify-center py-0.5 rounded-xl transition-all relative ' + (isCurrent ? 'text-neutral-950 scale-105 font-black' : 'text-neutral-400 font-medium hover:text-neutral-600')
+        }, [
+          e('span', { className: 'text-[18px] mb-0.5' }, tab.icon),
+          e('span', { className: 'text-[9px] uppercase tracking-wider font-bold' }, tab.label),
+          isCurrent && e('div', { className: 'absolute -bottom-1 w-1.5 h-1.5 bg-neutral-950 rounded-full' })
+        ]);
+      })),
 
-      // --- ACTIVE PROGRAMS CARDS PREVIEW BAR ---
-      e('div', { className: 'bg-white mt-3 p-4 border-b border-gray-100 space-y-3' }, [
-        e('h3', { className: 'font-black text-sm tracking-tight text-gray-900' }, 'Active programs'),
-        e('div', { className: 'flex flex-col items-start space-y-1.5' }, [
-          e('div', { className: 'w-11 h-11 bg-[#F8F8FA] rounded-xl flex items-center justify-center border border-gray-100 shadow-2xs' }, '🎁'),
-          e('span', { className: 'text-[11px] font-black text-gray-900 tracking-tight' }, 'LIVE rewards')
-        ])
-      ]),
-
-      // --- CAMPAIGNS & INTEGRATED TASK SELECTION LISTS ---
-      e('div', { className: 'bg-white mt-3 p-4 space-y-3 flex-1' }, [
-        e('div', { className: 'flex justify-between items-center mb-1' }, [
-          e('div', { className: 'flex items-center space-x-1' }, [
-            e('h3', { className: 'font-black text-sm tracking-tight text-gray-900' }, 'Programs for you'),
-            e('span', { className: 'w-3 h-3 rounded-full border border-gray-300 inline-flex items-center justify-center text-[8px] text-gray-400 font-bold' }, 'i')
-          ]),
-          e('span', { className: 'text-xs font-bold text-gray-400 flex items-center' }, ['View all ', e('span', { className: 'text-[9px] pl-0.5' }, '›')])
-        ]),
-        
-        tasks.map(task => {
-          let actionColorText = 'text-gray-400';
-          if (task.status === 'pending') actionColorText = 'text-amber-500 font-bold';
-          if (task.status === 'approved') actionColorText = 'text-emerald-500 font-bold';
-
-          return e('div', { 
-            key: task.id, 
-            onClick: () => task.status === 'available' && openSubmissionDrawer(task),
-            className: 'flex items-start justify-between py-3 border-b border-gray-100 last:border-0 cursor-pointer active:bg-gray-50/50 transition-colors rounded-lg px-1' 
-          }, [
-            e('div', { className: 'flex space-x-3 items-start flex-1 pr-2' }, [
-              e('div', { className: 'text-lg pt-0.5' }, task.network === 'TikTok' ? '🎵' : task.network === 'Facebook' ? '🧰' : '⭐'),
-              e('div', { className: 'space-y-0.5 flex-1' }, [
-                e('div', { className: 'flex items-center space-x-2' }, [
-                  e('h4', { className: 'font-black text-[13px] text-gray-900 tracking-tight' }, task.title),
-                  e('span', { className: 'bg-gray-100 text-gray-500 text-[9px] font-black px-1.5 py-0.5 rounded flex items-center space-x-0.5' }, [
-                    e('span', { className: 'text-[7px]' }, '🔒'), e('span', null, task.lockStatus)
-                  ])
-                ]),
-                e('p', { className: 'text-[11px] text-gray-400 font-medium leading-normal' }, task.desc),
-                task.status === 'pending' && e('div', { className: 'text-[9px] font-mono text-amber-500 pt-1 truncate max-w-[200px]' }, `Awaiting: ${task.proofUrl}`),
-                task.status === 'approved' && e('div', { className: 'text-[9px] font-bold text-emerald-500 pt-1' }, '✓ Campaign verification successfully credited')
-              ])
-            ]),
-            e('div', { className: 'flex items-center space-x-1 self-center text-xs' }, [
-              task.status === 'available' ? e('span', { className: 'text-xs text-gray-300 font-bold' }, '›') : e('span', { className: `text-[10px] ${actionColorText}` }, task.status)
-            ])
-          ]);
-        })
-      ]),
-
-      // Sliding Proof Verification Bottom Sheet Draw Drawer
-      activeSubmissionTask && e('div', { className: 'fixed inset-0 bg-black/60 z-50 flex items-end justify-center p-4 animate-fade-in' }, [
+      // Task Link Submission Sheets Overlay
+      activeSubmissionTask && e('div', { className: 'fixed inset-0 bg-black/60 z-50 flex items-end justify-center p-4' }, [
         e('div', { className: 'bg-white w-full rounded-t-3xl p-6 space-y-4 max-w-md shadow-2xl' }, [
-          e('div', { className: 'flex justify-between items-center border-b pb-2' }, [
-            e('div', null, [
-              e('span', { className: 'text-[9px] font-black uppercase tracking-widest text-gray-400 block' }, activeSubmissionTask.network),
-              e('h3', { className: 'font-black text-base text-gray-900' }, 'Verify Performance Asset')
-            ]),
-            e('button', { onClick: () => setActiveSubmissionTask(null), className: 'text-gray-400 font-black px-2 text-base' }, '✕')
-          ]),
-          e('div', { className: 'space-y-1' }, [
-            e('label', { className: 'block text-[10px] font-black text-gray-400 uppercase tracking-wider' }, 'Social Link URL Destination'),
-            e('input', {
-              type: 'url',
-              value: typedProofUrl,
-              onChange: e => setTypedProofUrl(e.target.value),
-              placeholder: 'https://example.com/your-submission-url',
-              className: 'w-full px-4 py-3 bg-[#F8F8FA] border rounded-xl text-xs font-medium focus:outline-none focus:border-[#121212]'
-            })
-          ]),
-          e('button', {
-            onClick: handleExecuteProofSubmission,
-            className: 'w-full bg-[#121212] text-white font-black py-3.5 rounded-xl text-xs uppercase tracking-wider'
-          }, 'Lock Submission Link')
+          e('button', { onClick: () => setActiveSubmissionTask(null), className: 'text-neutral-400 font-black float-right' }, '✕'),
+          e('h3', { className: 'font-black text-base text-neutral-900' }, 'Verify Performance Asset'),
+          e('input', { type: 'url', value: typedProofUrl, onChange: e => setTypedProofUrl(e.target.value), placeholder: 'https://example.com/submission-url', className: 'w-full px-4 py-3 bg-[#F8F8FA] border rounded-xl text-xs font-medium focus:outline-none' }),
+          e('button', { onClick: handleExecuteProofSubmission, className: 'w-full bg-[#121212] text-white font-black py-3.5 rounded-xl text-xs uppercase' }, 'Lock Submission Link')
         ])
       ])
     ]);
   }
 
-  // View 6C: Consumer Discovery Navigation Loop Template
+  // Consumer/Viewer profile dashboard view logic
   if (currentPage === 'dashboard' && userRole === 'viewer') {
     return e('div', { className: 'min-h-screen bg-[#F8F8FA] text-[#121212] max-w-md mx-auto shadow-md flex flex-col justify-between relative' }, [
       renderAdminToggleButton(),
@@ -526,14 +603,14 @@ function App() {
           e('button', { onClick: () => alert('Subscribed'), className: 'bg-[#121212] text-white text-xs px-3 py-1.5 rounded-xl font-bold' }, 'Subscribe (30 FC)')
         ])
       ]),
-      e('div', { className: 'bg-white border-t py-3 px-8 flex justify-around items-center' }, [
+      e('div', { className: 'bg-white border-t py-3 px-8 flex justify-around items-center shadow-md' }, [
         e('button', { onClick: () => setActiveTab('feed'), className: 'text-[#121212] font-bold text-xs' }, 'Explore'),
         e('button', { onClick: handleLogout, className: 'text-gray-400 font-bold text-xs' }, 'Log Out')
       ])
     ]);
   }
 
-  return e('div', { className: 'p-6 text-center text-xs text-gray-400' }, 'Initializing security modules...');
+  return e('div', null, 'Loading configuration setup layers...');
 }
 
 const root = window.ReactDOM.createRoot(document.getElementById('root'));
