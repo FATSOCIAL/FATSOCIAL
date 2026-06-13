@@ -30,7 +30,6 @@ function App() {
   const [isAdminViewOpen, setIsAdminViewOpen] = useState(false);
 
   // --- MOCK DATABASE FOR LIVE SCROLLABLE FEED ---
-  // Tracks: New Account creators, Logged-back-in creators, Follows/Followers, and Subscriptions
   const [posts, setPosts] = useState([
     {
       id: 'p1',
@@ -364,21 +363,64 @@ function App() {
         creatorTab === 'my_profile' && renderMyProfileTab()
       ]),
 
+      // --- 📌 NEW REFACTORED INLINE NAVIGATION BAR NODE ---
+      // Built raw inside the single-file setup context with the new SVG vectors
       e('nav', { className: 'fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-xl border-t border-neutral-200/80 px-2 py-3 grid grid-cols-5 gap-1 z-50 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]' }, [
-        { id: 'home', label: 'Home', outlineIcon: '○', boldIcon: '●' },
-        { id: 'search', label: 'Search', outlineIcon: '⌕', boldIcon: '🔍' },
-        { id: 'monetization', label: 'Earnings', outlineIcon: '◇', boldIcon: '◆' },
-        { id: 'chats', label: 'Chats', outlineIcon: '💬', boldIcon: '💬' },
-        { id: 'my_profile', label: 'Profile', outlineIcon: '👤', boldIcon: '👤' }
+        { 
+          id: 'home', 
+          label: 'Home', 
+          svg: e('svg', { viewBox: '0 0 100 100', className: 'w-[22px] h-[22px]', fill: 'currentColor' }, 
+            e('path', { d: 'M50,23.5 L18,50 L18,81.5 C18,83.4 19.6,85 21.5,85 L42.5,85 L42.5,60 L57.5,60 L57.5,85 L78.5,85 C80.4,85 82,83.4 82,81.5 L82,50 L50,23.5 Z' })
+          )
+        },
+        { 
+          id: 'search', 
+          label: 'Search', 
+          svg: e('svg', { viewBox: '0 0 100 100', className: 'w-[22px] h-[22px]', stroke: 'currentColor', strokeWidth: '8', fill: 'none', strokeLinecap: 'round' }, [
+            e('circle', { cx: '47', cy: '47', r: '23' }),
+            e('line', { x1: '63.5', y1: '63.5', x2: '81', y2: '81' })
+          ])
+        },
+        { 
+          id: 'monetization', 
+          label: 'Earnings', 
+          svg: e('svg', { viewBox: '0 0 100 100', className: 'w-[24px] h-[24px]', stroke: 'currentColor', strokeWidth: '5.5', fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }, [
+            e('path', { d: 'M31.5,29.5 L78.5,27.5 C80,27.5 81.5,28.5 82,30 L87.5,61.5 C88,63 87,64.5 85.5,65 L55.5,70.5', opacity: '0.85' }),
+            e('rect', { x: '15', y: '36', width: '60', height: '33', rx: '2', fill: '#FFFFFF' }),
+            e('path', { d: 'M21,42 L25,42 M21,42 L21,46 M69,42 L65,42 M69,42 L69,46 M21,63 L25,63 M21,63 L21,59 M69,63 L65,63 M69,63 L69,59', strokeWidth: '4' }),
+            e('circle', { cx: '45', cy: '52.5', r: '11', fill: '#FFFFFF' }),
+            e('path', { d: 'M45,46.5 L45,58.5 M42,49 C42,47.5 44,47.5 45,47.5 C46.5,47.5 47.5,48 47.5,49.5 C47.5,51.5 42,51.5 42,54 C42,55.5 43.5,56.5 45,56.5 C46.5,56.5 48,56 48,54.5', strokeWidth: '4' })
+          ])
+        },
+        { 
+          id: 'chats', 
+          label: 'Chats', 
+          svg: e('svg', { viewBox: '0 0 100 100', className: 'w-[22px] h-[22px]', stroke: 'currentColor', strokeWidth: '7', fill: 'none' }, [
+            e('circle', { cx: '50', cy: '46', r: '28' }),
+            e('path', { d: 'M34,68 L28,77 C27,78.5 28.5,80 30,79 L39,73.5', strokeLinecap: 'round', strokeLinejoin: 'round' }),
+            e('circle', { cx: '39', cy: '46', r: '3.5', fill: 'currentColor', stroke: 'none' }),
+            e('circle', { cx: '50', cy: '46', r: '3.5', fill: 'currentColor', stroke: 'none' }),
+            e('circle', { cx: '61', cy: '46', r: '3.5', fill: 'currentColor', stroke: 'none' })
+          ])
+        },
+        { 
+          id: 'my_profile', 
+          label: 'Profile', 
+          svg: e('svg', { viewBox: '0 0 100 100', className: 'w-[22px] h-[22px]', stroke: 'currentColor', strokeWidth: '7', fill: 'none' }, [
+            e('circle', { cx: '50', cy: '50', r: '33' }),
+            e('circle', { cx: '50', cy: '41', r: '12', fill: 'currentColor', stroke: 'none' }),
+            e('path', { d: 'M26,69 C29,60 38,55 50,55 C62,55 71,60 74,69', strokeLinecap: 'round' })
+          ])
+        }
       ].map(tab => {
-        const isCurrent = creatorTab === tab.id;
+        const isCurrent = creatorTab === tab.id || (tab.id === 'my_profile' && creatorTab === 'my_profile');
         return e('button', {
           key: tab.id,
           onClick: () => setCreatorTab(tab.id),
           className: 'flex flex-col items-center justify-center py-0.5 rounded-xl transition-all relative ' + (isCurrent ? 'text-black scale-105 font-black' : 'text-neutral-400 font-medium')
         }, [
-          e('span', { className: 'text-[18px] mb-0.5 transition-all', style: { color: isCurrent ? '#000000' : '#A3A3A3' } }, isCurrent ? tab.boldIcon : tab.outlineIcon),
-          e('span', { className: 'text-[9px] uppercase tracking-wider font-bold' }, tab.label),
+          e('div', { className: 'transition-all', style: { color: isCurrent ? '#000000' : '#A3A3A3' } }, tab.svg),
+          e('span', { className: 'text-[9px] uppercase tracking-wider font-bold mt-1' }, tab.label),
           isCurrent && e('div', { className: 'absolute -bottom-1 w-1.5 h-1.5 bg-black rounded-full' })
         ]);
       })),
