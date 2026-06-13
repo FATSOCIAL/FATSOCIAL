@@ -57,7 +57,7 @@ function App() {
           setPaymentStatus('idle');
           setUserRole('creator');
           
-          alert(`Verification Complete!\nAn automated validation confirmation has been sent to ${email || 'your email'}. Access granted.`);
+          alert(`Verification Complete!\nAn automated validation confirmation link has been sent to your registered email address (${email || 'provided address'}). Access granted.`);
           setCurrentPage('dashboard');
         }
       }, 1500);
@@ -96,6 +96,10 @@ function App() {
   };
 
   const handleConfirmCreatorPayment = () => {
+    if (!fullName || !email) {
+      alert("Missing registration variables. Please go back and fill the setup form completely.");
+      return;
+    }
     // Lock the interface down into an infinite verification checking stream
     setPaymentStatus('verifying');
   };
@@ -146,23 +150,28 @@ function App() {
 
   // --- 2. FLOATING ADMINISTRATIVE OVERLAY PANEL ---
   const renderInlineAdminController = () => {
+    // Check if the current user profile context has an ongoing transaction waiting
+    const hasPendingUser = paymentStatus === 'verifying' && fullName && email;
+
     return e('div', { className: 'fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-900 border border-red-500 text-white text-xs p-4 rounded-2xl shadow-2xl z-[9999] w-[90%] max-w-xs space-y-3' }, [
       e('div', { className: 'flex justify-between items-center border-b border-gray-700 pb-1.5' }, [
-        e('span', { className: 'font-black text-red-400 tracking-wide uppercase' }, '🛠️ Admin Control Panel'),
-        e('button', { onClick: () => setIsAdminViewOpen(false), className: 'text-gray-400 font-bold px-1' }, '✕')
+        e('span', { className: 'font-black text-red-400 tracking-wide uppercase text-[11px]' }, '🛠️ Admin Control Panel'),
+        e('button', { onClick: () => setIsAdminViewOpen(false), className: 'text-gray-400 font-bold px-1 text-sm' }, '✕')
       ]),
-      paymentStatus === 'verifying' ? 
+      hasPendingUser ? 
         e('div', { className: 'space-y-2' }, [
-          e('div', { className: 'bg-gray-800 p-2 rounded text-[11px] font-mono border border-gray-700' }, [
-            e('p', null, `NAME: ${fullName}`),
-            e('p', null, `EMAIL: ${email}`)
+          e('div', { className: 'bg-gray-800 p-2.5 rounded-xl text-[11px] font-mono border border-gray-700 space-y-1' }, [
+            e('p', { className: 'text-gray-400 font-bold text-[10px] uppercase' }, 'Awaiting Verification Account:'),
+            e('p', { className: 'text-white font-bold' }, `NAME: ${fullName}`),
+            e('p', { className: 'text-blue-400' }, `EMAIL: ${email}`),
+            e('p', { className: 'text-amber-400' }, `FEE STATUS: $25.00 Pending`)
           ]),
           e('button', { 
             onClick: () => localStorage.setItem('fatsocial_admin_approved_trigger', 'true'),
-            className: 'w-full bg-emerald-500 text-black font-black py-2 rounded-xl text-[11px] uppercase tracking-wider'
+            className: 'w-full bg-emerald-500 text-black font-black py-3 rounded-xl text-xs uppercase tracking-wider shadow-md active:scale-95 transition-transform'
           }, 'Approve User Account')
         ]) : 
-        e('p', { className: 'text-gray-400 text-center py-2 italic text-[11px]' }, 'No accounts currently waiting for payment verification.')
+        e('p', { className: 'text-gray-400 text-center py-4 italic text-[11px]' }, 'No accounts currently waiting for payment verification.')
     ]);
   };
 
