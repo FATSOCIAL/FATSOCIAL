@@ -10,68 +10,99 @@ function App() {
   const [creatorEarnings, setCreatorEarnings] = useState(() => parseFloat(localStorage.getItem('fatsocial_creator_earnings')) || 0.00);
 
   // Layout & Global View Configurations
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isTopUpOpen, setIsTopUpOpen] = useState(false);
-  
-  // --- USER SOCIAL GRAPH DATABASES ---
-  const [followingCreators, setFollowingCreators] = useState(() => JSON.parse(localStorage.getItem('fatsocial_following')) || ['Alex Rivers', 'Jordan Sage']);
-  const [followersCreators, setFollowersCreators] = useState(() => JSON.parse(localStorage.getItem('fatsocial_followers')) || ['Taylor Morgan']);
-  const [subscribedCreators, setSubscribedCreators] = useState(() => JSON.parse(localStorage.getItem('fatsocial_subs')) || ['Alex Rivers']);
+  const [isAdminViewOpen, setIsAdminViewOpen] = useState(false);
   
   // --- PREMIUM TAB NAVIGATION ROUTER ---
   const [creatorTab, setCreatorTab] = useState(() => localStorage.getItem('fatsocial_creator_tab') || 'home');
-  const [feedFilter, setFeedFilter] = useState('all'); // 'all' | 'following' | 'subscribed'
+  const [feedFilter, setFeedFilter] = useState('all'); 
 
   // Registration and Authentication Form Fields State Cache
-  const [fullName, setFullName] = useState(() => localStorage.getItem('fatsocial_cache_name') || '');
-  const [email, setEmail] = useState(() => localStorage.getItem('fatsocial_cache_email') || '');
+  const [fullName, setFullName] = useState(() => localStorage.getItem('fatsocial_cache_name') || 'William Hudson');
+  const [email, setEmail] = useState(() => localStorage.getItem('fatsocial_cache_email') || 'william.hudson@fatsocial.io');
   const [password, setPassword] = useState(() => localStorage.getItem('fatsocial_cache_pass') || '');
   const [paymentStatus, setPaymentStatus] = useState(() => localStorage.getItem('fatsocial_pay_status') || 'idle'); 
-  const [isAdminViewOpen, setIsAdminViewOpen] = useState(false);
+
+  // --- EXTENDED USER METADATA PROFILE STATES ---
+  const [profileGender, setProfileGender] = useState(() => localStorage.getItem('fatsocial_prof_gender') || 'Male');
+  const [profileLifestyle, setProfileLifestyle] = useState(() => localStorage.getItem('fatsocial_prof_life') || 'High-Tier Tech Nomad');
+  const [profileService, setProfileService] = useState(() => localStorage.getItem('fatsocial_prof_service') || 'Full-Stack UI Architecture');
+  const [profilePreferences, setProfilePreferences] = useState(() => localStorage.getItem('fatsocial_prof_pref') || 'Professional Collaborations & Premium Networking');
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+
+  // --- SOCIAL COUNTERS ENGINE ---
+  const [followerCount, setFollowerCount] = useState(128);
+  const [subscriberCount, setSubscriberCount] = useState(42);
+
+  // --- SEARCH BAR STATE ---
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // --- MOCK DATABASE FOR USERS REGISTRY ---
+  const [usersRegistry] = useState([
+    { username: '@alexrivers_studio', name: 'Alex Rivers', skill: 'Brand Strategy & Visual Curation', role: 'creator' },
+    { username: '@jordansage_code', name: 'Jordan Sage', skill: 'Backend Ledger Frameworks', role: 'creator' },
+    { username: '@taylor_m_design', name: 'Taylor Morgan', skill: 'UI/UX Interface Optimization', role: 'creator' },
+    { username: '@casey_vance_new', name: 'Casey Vance', skill: 'Decentralized Media Pipelines', role: 'creator' }
+  ]);
+
+  // --- CHATS INBOX ENGINE ---
+  const [chats, setChats] = useState(() => {
+    const saved = localStorage.getItem('fatsocial_chats_v2');
+    return saved ? JSON.parse(saved) : [
+      {
+        id: 'c_admin',
+        senderName: 'Platform Admin',
+        senderHandle: '@system_auditor',
+        messages: [
+          { sender: 'admin', text: 'Welcome onboard to FATSOCIAL! Your secure decentralized framework workspace is now fully initialized. You can view tasks, verify earnings balance tracking models, and network directly via token assignments.', time: 'Just Now' }
+        ],
+        unread: true
+      }
+    ];
+  });
+  const [activeChatId, setActiveChatId] = useState(null);
+  const [typedMessage, setTypedMessage] = useState('');
 
   // --- MOCK DATABASE FOR LIVE SCROLLABLE FEED ---
-  const [posts, setPosts] = useState([
-    {
-      id: 'p1',
-      creator: 'Alex Rivers',
-      handle: '@alexrivers_studio',
-      type: 'subscribed',
-      content: 'Just uploaded the raw design architecture templates for the FATSOCIAL dashboard UI layout. Premium subscribers get direct access to the asset file pool today! Let me know your thoughts.',
-      timestamp: '10m ago',
-      likes: 42,
-      isLiked: false
-    },
-    {
-      id: 'p2',
-      creator: 'Jordan Sage',
-      handle: '@jordansage_code',
-      type: 'following',
-      content: 'Successfully configured the secure multi-currency routing nodes for cross-border settlements. Infrastructure tests are reading perfectly clean. 🚀',
-      timestamp: '2h ago',
-      likes: 19,
-      isLiked: false
-    },
-    {
-      id: 'p3',
-      creator: 'Taylor Morgan',
-      handle: '@taylor_m_design',
-      type: 'follower',
-      content: 'Just logged back into the environment! Spinning up a live brand identity curation catalog over the next hour. Hit the tip node if you are tuning in.',
-      timestamp: '4h ago',
-      likes: 31,
-      isLiked: false
-    },
-    {
-      id: 'p4',
-      creator: 'Casey Vance',
-      handle: '@casey_vance_new',
-      type: 'new_account',
-      content: 'Account setup complete! Excited to join the platform ecosystem. Looking forward to dropping our decentralized media asset libraries here soon.',
-      timestamp: 'Just Now',
-      likes: 3,
-      isLiked: false
-    }
-  ]);
+  const [posts, setPosts] = useState(() => {
+    const saved = localStorage.getItem('fatsocial_posts_v2');
+    return saved ? JSON.parse(saved) : [
+      {
+        id: 'p1',
+        creator: 'Alex Rivers',
+        handle: '@alexrivers_studio',
+        type: 'subscribed',
+        content: 'Just uploaded the raw design architecture templates for the FATSOCIAL dashboard UI layout. Premium subscribers get direct access to the asset file pool today! Let me know your thoughts.',
+        timestamp: '10m ago',
+        likes: 42,
+        isLiked: false
+      },
+      {
+        id: 'p2',
+        creator: 'William Hudson',
+        handle: '@william_hudson',
+        type: 'personal',
+        content: 'Successfully refactored the structural modular views inside our Next.js dashboard framework repository.',
+        timestamp: '1h ago',
+        likes: 12,
+        isLiked: false
+      },
+      {
+        id: 'p3',
+        creator: 'Jordan Sage',
+        handle: '@jordansage_code',
+        type: 'following',
+        content: 'Successfully configured the secure multi-currency routing nodes for cross-border settlements. Infrastructure tests are reading perfectly clean. 🚀',
+        timestamp: '2h ago',
+        likes: 19,
+        isLiked: false
+      }
+    ];
+  });
+
+  // --- NEW CONTENT CREATOR COMPOSER ---
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+  const [newPostContent, setNewPostContent] = useState('');
 
   // --- PLATFORM TASK SYSTEM STATE STORAGE ---
   const [tasks, setTasks] = useState(() => {
@@ -91,17 +122,21 @@ function App() {
     localStorage.setItem('fatsocial_role', userRole);
     localStorage.setItem('fatsocial_coins', fatcoinBalance);
     localStorage.setItem('fatsocial_creator_earnings', creatorEarnings);
-    localStorage.setItem('fatsocial_following', JSON.stringify(followingCreators));
-    localStorage.setItem('fatsocial_followers', JSON.stringify(followersCreators));
-    localStorage.setItem('fatsocial_subs', JSON.stringify(subscribedCreators));
     localStorage.setItem('fatsocial_pay_status', paymentStatus);
     localStorage.setItem('fatsocial_tasks_database', JSON.stringify(tasks));
     localStorage.setItem('fatsocial_creator_tab', creatorTab);
+    localStorage.setItem('fatsocial_posts_v2', JSON.stringify(posts));
+    localStorage.setItem('fatsocial_chats_v2', JSON.stringify(chats));
     
     localStorage.setItem('fatsocial_cache_name', fullName);
     localStorage.setItem('fatsocial_cache_email', email);
     localStorage.setItem('fatsocial_cache_pass', password);
-  }, [currentPage, userRole, fatcoinBalance, creatorEarnings, followingCreators, followersCreators, subscribedCreators, paymentStatus, tasks, creatorTab, fullName, email, password]);
+
+    localStorage.setItem('fatsocial_prof_gender', profileGender);
+    localStorage.setItem('fatsocial_prof_life', profileLifestyle);
+    localStorage.setItem('fatsocial_prof_service', profileService);
+    localStorage.setItem('fatsocial_prof_pref', profilePreferences);
+  }, [currentPage, userRole, fatcoinBalance, creatorEarnings, paymentStatus, tasks, creatorTab, fullName, email, password, profileGender, profileLifestyle, profileService, profilePreferences, posts, chats]);
 
   // Infinite Polling Loop for Administrative updates
   useEffect(() => {
@@ -129,7 +164,6 @@ function App() {
   };
 
   const handleLogout = () => {
-    setIsSidebarOpen(false);
     setUserRole('');
     setPaymentStatus('idle');
     setCreatorTab('home');
@@ -177,6 +211,85 @@ function App() {
     }));
   };
 
+  // --- START A CONVERSATION COST FUNCTION ---
+  const handleStartConversation = (targetUser) => {
+    const existingChat = chats.find(c => c.senderHandle === targetUser.username);
+    if (existingChat) {
+      setActiveChatId(existingChat.id);
+      setCreatorTab('chats');
+      return;
+    }
+
+    if (fatcoinBalance < 20) {
+      alert(`Insufficient Funds!\nStarting a new conversation requires 20 Fatcoins. Please top up your ledger.`);
+      return;
+    }
+
+    // Deduct 20 Fatcoins
+    setFatcoinBalance(prev => prev - 20);
+
+    const newChat = {
+      id: 'c_' + Date.now(),
+      senderName: targetUser.name,
+      senderHandle: targetUser.username,
+      messages: [
+        { sender: 'admin', text: `Conversation room unlocked with ${targetUser.name}. [Secure 20 Fatcoins Session Node Allocation Accepted]`, time: 'Just Now' }
+      ],
+      unread: false
+    };
+
+    setChats(prev => [newChat, ...prev]);
+    setActiveChatId(newChat.id);
+    setCreatorTab('chats');
+  };
+
+  // --- SEND MESSAGE CHAT CONTEXT ---
+  const handleSendMessage = () => {
+    if (!typedMessage.trim()) return;
+    
+    setChats(prev => prev.map(c => {
+      if (c.id === activeChatId) {
+        const updatedMessages = [...c.messages, { sender: 'user', text: typedMessage, time: 'Just Now' }];
+        
+        // Automated response generation for demonstration loop parity
+        setTimeout(() => {
+          setChats(currentChats => currentChats.map(item => {
+            if (item.id === activeChatId) {
+              return {
+                ...item,
+                messages: [...item.messages, { sender: 'admin', text: `Automated Node Response Received: Echo framework data validation accepted correctly.`, time: 'Just Now' }]
+              };
+            }
+            return item;
+          }));
+        }, 1200);
+
+        return { ...c, messages: updatedMessages, unread: false };
+      }
+      return c;
+    }));
+
+    setTypedMessage('');
+  };
+
+  // --- SUBMIT USER CONTENT POST GENERATOR ---
+  const handlePublishPost = () => {
+    if (!newPostContent.trim()) return;
+    const addedPost = {
+      id: 'post_' + Date.now(),
+      creator: fullName || 'William Hudson',
+      handle: '@william_hudson',
+      type: 'personal',
+      content: newPostContent,
+      timestamp: 'Just Now',
+      likes: 0,
+      isLiked: false
+    };
+    setPosts(prev => [addedPost, ...prev]);
+    setNewPostContent('');
+    setIsCreatePostOpen(false);
+  };
+
   // --- FLOATING ADMINISTRATIVE CONTROL PANEL OVERLAY ---
   const renderInlineAdminController = () => {
     const hasPendingUser = paymentStatus === 'verifying' && fullName && email;
@@ -209,12 +322,8 @@ function App() {
   // --- 🏠 LIVE SCROLLABLE CONTENT FEED VIEW (HOME TAB) ---
   const renderHomeTab = () => {
     const filteredPosts = posts.filter(post => {
-      if (feedFilter === 'following') {
-        return followingCreators.includes(post.creator) || followersCreators.includes(post.creator);
-      }
-      if (feedFilter === 'subscribed') {
-        return subscribedCreators.includes(post.creator);
-      }
+      if (feedFilter === 'subscribed') return post.type === 'subscribed';
+      if (feedFilter === 'following') return post.type === 'following' || post.type === 'personal';
       return true; 
     });
 
@@ -228,20 +337,8 @@ function App() {
           ])
         ]),
 
-        // Horizontal Activity Loop
-        e('div', { className: 'flex space-x-3 overflow-x-auto pb-2 scrollbar-none' }, [
-          { name: 'You', status: 'Online', border: 'border-neutral-950' },
-          { name: 'Alex R.', status: 'Subscribed', border: 'border-neutral-950 bg-neutral-950 text-white' },
-          { name: 'Jordan S.', status: 'Following', border: 'border-neutral-300' },
-          { name: 'Taylor M.', status: 'Follower', border: 'border-neutral-300' },
-          { name: 'Casey V.', status: 'New Creator', border: 'border-neutral-200 dashed' }
-        ].map((actor, idx) => e('div', { key: idx, className: 'flex flex-col items-center flex-shrink-0 space-y-1' }, [
-          e('div', { className: `w-11 h-11 rounded-xl border flex items-center justify-center font-black text-xs ${actor.border}` }, actor.name.charAt(0)),
-          e('span', { className: 'text-[9px] font-medium text-neutral-400 max-w-[52px] truncate text-center' }, actor.name)
-        ]))),
-
         // Filter Tabs
-        e('div', { className: 'grid grid-cols-3 gap-1 bg-neutral-100 p-0.5 rounded-lg mt-2' }, [
+        e('div', { className: 'grid grid-cols-3 gap-1 bg-neutral-100 p-0.5 rounded-lg' }, [
           { id: 'all', label: 'All Activity' },
           { id: 'following', label: 'Network' },
           { id: 'subscribed', label: 'Subscribed' }
@@ -254,16 +351,8 @@ function App() {
 
       // Scrollable Feed List 
       e('div', { className: 'p-4 space-y-4 overflow-y-auto flex-1' }, 
-        filteredPosts.length === 0 ? [
-          e('div', { className: 'bg-white border rounded-2xl p-8 text-center text-xs text-neutral-400 font-medium' }, 'No active content posts match this filter node.')
-        ] : filteredPosts.map(post => {
-          let statusBadge = '● Active';
-          if (subscribedCreators.includes(post.creator)) statusBadge = '◆ Subscribed';
-          else if (followingCreators.includes(post.creator)) statusBadge = '✓ Following';
-          else if (followersCreators.includes(post.creator)) statusBadge = '👥 Follower';
-          else if (post.type === 'new_account') statusBadge = '✨ New Creator';
-
-          return e('div', { key: post.id, className: 'bg-white border border-neutral-200/70 rounded-[20px] p-4 shadow-3xs space-y-3' }, [
+        filteredPosts.map(post => (
+          e('div', { key: post.id, className: 'bg-white border border-neutral-200/70 rounded-[20px] p-4 shadow-3xs space-y-3' }, [
             e('div', { className: 'flex justify-between items-center' }, [
               e('div', { className: 'flex items-center space-x-2.5' }, [
                 e('div', { className: 'w-9 h-9 bg-neutral-900 text-white font-black text-xs rounded-lg flex items-center justify-center' }, post.creator.charAt(0)),
@@ -272,11 +361,9 @@ function App() {
                   e('div', { className: 'text-[10px] font-medium text-neutral-400' }, post.handle)
                 ])
               ]),
-              e('span', { className: `text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide ${statusBadge.includes('Subscribed') ? 'bg-neutral-950 text-white' : 'bg-neutral-50 text-neutral-500 border border-neutral-200'}` }, statusBadge)
+              e('span', { className: 'text-[9px] font-black px-2 py-0.5 bg-neutral-50 text-neutral-500 border border-neutral-200 rounded-md uppercase' }, '● Active')
             ]),
-
             e('p', { className: 'text-xs text-neutral-800 leading-relaxed font-medium' }, post.content),
-
             e('div', { className: 'flex justify-between items-center pt-2 border-t border-neutral-50 text-[11px] font-bold text-neutral-400' }, [
               e('span', null, post.timestamp),
               e('div', { className: 'flex space-x-4' }, [
@@ -286,65 +373,281 @@ function App() {
                 }, [
                   e('span', null, post.isLiked ? '♥' : '♡'),
                   e('span', null, post.likes)
-                ]),
-                e('button', { onClick: () => alert('Token tipped to creator account ledger.'), className: 'hover:text-neutral-900 uppercase tracking-wide text-[10px] font-black' }, '🪙 Tip')
+                ])
               ])
             ])
-          ]);
-        })
+          ])
+        ))
       )
     ]);
   };
 
-  const renderSearchTab = () => e('div', { className: 'p-5 space-y-4 animate-fade-in' }, [
-    e('div', { className: 'relative' }, [
-      e('input', { type: 'text', placeholder: 'Search tasks, sound pools, or creators...', className: 'w-full bg-white border border-neutral-200 rounded-xl px-4 py-3.5 text-xs font-medium focus:outline-none focus:border-neutral-950' })
-    ]),
-    e('p', { className: 'text-[10px] font-black text-neutral-400 uppercase tracking-wider pl-1' }, 'Active Platforms Catalog'),
-    e('div', { className: 'grid grid-cols-2 gap-3' }, ['TikTok Media', 'Facebook Video', 'Instagram Reach', 'Premium Sounds'].map(tag => e('div', { key: tag, className: 'bg-white p-4 rounded-xl border border-neutral-100 text-xs font-black text-neutral-800 text-center shadow-3xs' }, tag)))
-  ]);
+  // --- 🔍 SPECIFICATION OVERHAUL: SEARCH TAB BY USERNAME ---
+  const renderSearchTab = () => {
+    const filteredUsers = usersRegistry.filter(user => 
+      user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-  const renderChatsTab = () => e('div', { className: 'p-5 space-y-3 animate-fade-in' }, [
-    e('h2', { className: 'font-black text-xl tracking-tight text-neutral-900 mb-2 pl-1' }, 'Messages'),
-    e('div', { className: 'bg-white rounded-2xl border border-neutral-100 divide-y divide-neutral-100' }, [
-      { name: 'System Auditor', msg: 'Your professional framework access has been successfully configured.', time: 'Just Now' },
-      { name: 'Campaign Desk Node', msg: 'New monetization opportunities match your deployment tracking criteria.', time: '4h ago' }
-    ].map((chat, idx) => e('div', { key: idx, className: 'p-4 flex justify-between items-center cursor-pointer active:bg-neutral-50/50' }, [
-      e('div', { className: 'space-y-0.5 flex-1 pr-2' }, [e('div', { className: 'font-black text-xs text-neutral-900' }, chat.name), e('p', { className: 'text-[11px] text-neutral-400 font-medium truncate max-w-[220px]' }, chat.msg)]),
-      e('span', { className: 'text-[9px] font-bold text-neutral-400' }, chat.time)
-    ])))
-  ]);
-
-  // --- 👤 REFACTORED WORKSPACE SETTINGS PROFILE PICTURE VIEW ---
-  const renderMyProfileTab = () => e('div', { className: 'p-5 space-y-4 animate-fade-in' }, [
-    e('div', { className: 'bg-white border border-neutral-200/80 rounded-[24px] p-6 flex flex-col items-center justify-center text-center space-y-4 shadow-3xs' }, [
-      
-      // Wide Circled Profile Frame
-      e('div', { className: 'relative w-28 h-28 rounded-full border-2 border-neutral-950 bg-neutral-50 overflow-hidden flex items-center justify-center shadow-xs' }, [
-        e('span', { className: 'text-neutral-950 font-black text-3xl select-none' }, fullName ? fullName.charAt(0).toUpperCase() : 'F')
-      ]),
-
-      // Profile Information Context Stack Left Cleanly Centered Underneath
+    return e('div', { className: 'p-5 space-y-4 flex flex-col h-full animate-fade-in' }, [
       e('div', { className: 'space-y-1' }, [
-        e('h2', { className: 'font-black text-lg text-neutral-900 tracking-tight' }, fullName || 'FATSOCIAL Creator'),
-        e('p', { className: 'text-[11px] text-neutral-400 font-mono font-medium' }, email || 'account@fatsocial.github.io')
+        e('h2', { className: 'font-black text-xl tracking-tight text-neutral-950' }, 'Search Network'),
+        e('p', { className: 'text-[11px] text-neutral-400 font-medium' }, 'Discover and connect with verified profiles instantly.')
+      ]),
+      e('div', { className: 'relative' }, [
+        e('input', { 
+          type: 'text', 
+          value: searchQuery,
+          onChange: e => setSearchQuery(e.target.value),
+          placeholder: 'Search user profiles via username (e.g. @alex)...', 
+          className: 'w-full bg-white border border-neutral-200 rounded-xl px-4 py-3.5 text-xs font-medium focus:outline-none focus:border-neutral-950 shadow-3xs' 
+        })
+      ]),
+      e('div', { className: 'flex-1 overflow-y-auto space-y-3 pr-1' }, 
+        filteredUsers.length === 0 ? [
+          e('div', { className: 'bg-white border rounded-2xl p-8 text-center text-xs text-neutral-400 font-medium' }, 'No matching usernames found in the node matrix.')
+        ] : filteredUsers.map(user => (
+          e('div', { key: user.username, className: 'bg-white border border-neutral-200/80 rounded-2xl p-4 flex justify-between items-center shadow-3xs' }, [
+            e('div', { className: 'space-y-1' }, [
+              e('div', { className: 'flex items-center space-x-1.5' }, [
+                e('span', { className: 'font-black text-xs text-neutral-900' }, user.name),
+                e('span', { className: 'text-[10px] font-mono text-neutral-400' }, user.username)
+              ]),
+              e('p', { className: 'text-[11px] text-neutral-500 font-medium' }, user.skill)
+            ]),
+            e('button', { 
+              onClick: () => handleStartConversation(user),
+              className: 'bg-neutral-950 text-white text-[10px] uppercase font-black tracking-wide px-3 py-2 rounded-xl active:scale-95 transition-all' 
+            }, 'Chat [20 🪙]')
+          ])
+        ))
+      )
+    ]);
+  };
+
+  // --- 💬 SPECIFICATION OVERHAUL: STACKED INBOX MESSAGING NODE ---
+  const renderChatsTab = () => {
+    if (activeChatId) {
+      const openChat = chats.find(c => c.id === activeChatId);
+      return e('div', { className: 'flex flex-col h-full bg-white animate-fade-in' }, [
+        // Chat Window Header
+        e('div', { className: 'px-4 py-3.5 border-b border-neutral-100 flex items-center space-x-3 bg-white' }, [
+          e('button', { onClick: () => setActiveChatId(null), className: 'text-neutral-950 font-black text-lg pr-1' }, '←'),
+          e('div', null, [
+            e('div', { className: 'font-black text-xs text-neutral-900 tracking-tight' }, openChat.senderName),
+            e('div', { className: 'text-[10px] font-mono text-neutral-400' }, openChat.senderHandle)
+          ])
+        ]),
+
+        // Messages Flow Stream
+        e('div', { className: 'flex-1 p-4 overflow-y-auto space-y-3 bg-neutral-50/50' }, 
+          openChat.messages.map((m, idx) => {
+            const isUser = m.sender === 'user';
+            return e('div', { key: idx, className: `flex flex-col ${isUser ? 'items-end' : 'items-start'}` }, [
+              e('div', { className: `max-w-[80%] p-3 rounded-2xl text-xs font-medium leading-relaxed ${isUser ? 'bg-neutral-950 text-white rounded-tr-xs' : 'bg-white border border-neutral-200 text-neutral-900 rounded-tl-xs shadow-3xs'}` }, m.text),
+              e('span', { className: 'text-[9px] text-neutral-400 font-bold mt-1 px-1' }, m.time)
+            ]);
+          })
+        ),
+
+        // Message Input Toolbar
+        e('div', { className: 'p-3 border-t border-neutral-100 bg-white flex space-x-2' }, [
+          e('input', { 
+            type: 'text', 
+            value: typedMessage,
+            onChange: e => setTypedMessage(e.target.value),
+            onKeyDown: e => e.key === 'Enter' && handleSendMessage(),
+            placeholder: 'Type a message response...', 
+            className: 'flex-1 bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-xs font-medium focus:outline-none focus:border-neutral-900' 
+          }),
+          e('button', { onClick: handleSendMessage, className: 'bg-neutral-950 text-white font-black px-4 rounded-xl text-xs uppercase tracking-wide' }, 'Send')
+        ])
+      ]);
+    }
+
+    return e('div', { className: 'p-5 space-y-4 flex flex-col h-full animate-fade-in' }, [
+      e('div', { className: 'flex justify-between items-center' }, [
+        e('div', { className: 'space-y-1' }, [
+          e('h2', { className: 'font-black text-xl tracking-tight text-neutral-950' }, 'Secure Inbox'),
+          e('p', { className: 'text-[11px] text-neutral-400 font-medium' }, 'Click on any stacked conversation box block to converse.')
+        ]),
+        e('div', { className: 'bg-neutral-100 text-neutral-800 text-[10px] font-black font-mono px-2 py-1 rounded-md' }, `Balance: ${fatcoinBalance} 🪙`)
       ]),
 
-      // Split Verification & Metrics Grid Block Section
-      e('div', { className: 'pt-3 border-t border-neutral-100 w-full flex justify-around text-center' }, [
-        ['Verification', 'Active ✔️'],
-        ['Tier Class', 'Premium Pro']
-      ].map(([lbl, val]) => e('div', { key: lbl }, [
-        e('span', { className: 'block text-[9px] font-black text-neutral-400 uppercase tracking-wider mb-0.5' }, lbl),
-        e('span', { className: 'text-xs font-black text-neutral-900' }, val)
-      ])))
-    ]),
+      // Stacked inbox tiles matching instructions strictly
+      e('div', { className: 'flex-1 overflow-y-auto space-y-2 pr-1' }, 
+        chats.map(item => (
+          e('div', { 
+            key: item.id, 
+            onClick: () => {
+              setChats(prev => prev.map(c => c.id === item.id ? { ...c, unread: false } : c));
+              setActiveChatId(item.id);
+            },
+            className: 'bg-white border border-neutral-200/80 rounded-2xl p-4 flex justify-between items-center cursor-pointer active:bg-neutral-50 shadow-3xs transition-all relative overflow-hidden' 
+          }, [
+            item.unread && e('div', { className: 'absolute top-0 left-0 bottom-0 w-1 bg-neutral-950' }),
+            e('div', { className: 'space-y-1 pr-2 flex-1 truncate' }, [
+              e('div', { className: 'flex items-baseline space-x-2' }, [
+                e('span', { className: 'font-black text-xs text-neutral-900' }, item.senderName),
+                e('span', { className: 'text-[9px] font-mono text-neutral-400' }, item.senderHandle)
+              ]),
+              e('p', { className: 'text-[11px] text-neutral-500 font-medium truncate' }, item.messages[item.messages.length - 1].text)
+            ]),
+            e('div', { className: 'flex flex-col items-end space-y-1' }, [
+              e('span', { className: 'text-[9px] font-bold text-neutral-400' }, item.messages[item.messages.length - 1].time),
+              item.unread && e('span', { className: 'w-2 h-2 bg-neutral-950 rounded-full' })
+            ])
+          ])
+        ))
+      )
+    ]);
+  };
 
-    e('button', { 
-      onClick: handleLogout, 
-      className: 'w-full bg-neutral-50 text-neutral-900 border border-neutral-200 font-black py-3.5 rounded-xl text-xs uppercase tracking-wide shadow-3xs active:scale-98 transition-transform' 
-    }, 'Log Out System Session')
-  ]);
+  // --- 👤 SPECIFICATION OVERHAUL: PROFILE VIEW WITH GRID GRAPH METADATA & CHRONOLOGICAL USER POSTS ---
+  const renderMyProfileTab = () => {
+    // Filter out posts that belong to this personal account profile
+    const myPersonalPosts = posts.filter(p => p.creator === (fullName || 'William Hudson') || p.type === 'personal');
+
+    return e('div', { className: 'flex flex-col h-full animate-fade-in overflow-hidden' }, [
+      
+      // Top Sticky Action Node Header Panel
+      e('div', { className: 'bg-white px-4 pt-4 pb-3 border-b border-neutral-100 flex justify-between items-center shrink-0' }, [
+        e('div', null, [
+          e('h2', { className: 'font-black text-lg tracking-tight text-neutral-950' }, 'Workspace Profile'),
+          e('p', { className: 'text-[10px] font-mono text-neutral-400 uppercase tracking-wide' }, 'Verified Network Framework Node')
+        ]),
+        e('div', { className: 'flex space-x-2' }, [
+          e('button', { 
+            onClick: () => setIsCreatePostOpen(true), 
+            className: 'bg-neutral-950 text-white text-[11px] uppercase font-black tracking-wider px-3 py-2 rounded-xl active:scale-95 transition-all shadow-3xs' 
+          }, '＋ Create Post'),
+          e('button', { 
+            onClick: () => setIsEditProfileOpen(true), 
+            className: 'bg-white text-neutral-950 border border-neutral-300 text-[11px] uppercase font-black tracking-wider px-3 py-2 rounded-xl active:scale-95 transition-all shadow-3xs' 
+          }, '✏️ Edit UI')
+        ])
+      ]),
+
+      // Scrollable Body Frame Context
+      e('div', { className: 'flex-1 overflow-y-auto p-4 space-y-4' }, [
+        
+        // Identity Presentation Unit Layout Card Block
+        e('div', { className: 'bg-white border border-neutral-200/80 rounded-[24px] p-5 flex flex-col items-center justify-center text-center space-y-3 shadow-3xs' }, [
+          e('div', { className: 'w-20 h-20 rounded-full border-2 border-neutral-950 bg-neutral-50 overflow-hidden flex items-center justify-center font-black text-2xl shadow-xs' }, [
+            fullName ? fullName.charAt(0).toUpperCase() : 'W'
+          ]),
+          e('div', { className: 'space-y-0.5' }, [
+            e('h3', { className: 'font-black text-base text-neutral-900 tracking-tight' }, fullName || 'William Hudson'),
+            e('p', { className: 'text-[11px] font-mono text-neutral-400' }, email || 'william.hudson@fatsocial.io')
+          ]),
+          // Metrics counter array parameters
+          e('div', { className: 'pt-2.5 border-t border-neutral-100 w-full grid grid-cols-2 gap-2 text-center' }, [
+            ['Premium Subscribers', subscriberCount],
+            ['Network Followers', followerCount]
+          ].map(([labelMetric, counterValue]) => e('div', { key: labelMetric }, [
+            e('span', { className: 'block text-[9px] font-black text-neutral-400 uppercase tracking-wider mb-0.5' }, labelMetric),
+            e('span', { className: 'text-xs font-black text-neutral-900' }, counterValue)
+          ])))
+        ]),
+
+        // Structured Profile Details Showcase Grid Map Block 
+        e('div', { className: 'bg-white border border-neutral-200/80 rounded-[24px] p-5 space-y-3 shadow-3xs text-xs' }, [
+          e('h4', { className: 'font-black text-[11px] uppercase tracking-wider text-neutral-400 border-b pb-1.5 border-neutral-100' }, 'User Custom Matrix Parameters'),
+          
+          [
+            ['Gender Identity', profileGender],
+            ['Lifestyle Model', profileLifestyle],
+            ['Service / Domain Skill', profileService],
+            ['Social Preferences Alignment', profilePreferences]
+          ].map(([attributeName, attributeValue]) => e('div', { key: attributeName, className: 'space-y-0.5 pt-1 first:pt-0' }, [
+            e('span', { className: 'block text-[9px] font-bold text-neutral-400 uppercase tracking-tight' }, attributeName),
+            e('p', { className: 'font-black text-neutral-900 leading-relaxed' }, attributeValue)
+          ]))
+        ]),
+
+        // User's own historical chronological contents loop section stream
+        e('div', { className: 'space-y-3' }, [
+          e('h4', { className: 'font-black text-[11px] uppercase tracking-wider text-neutral-400 pl-1' }, 'Chronological Context Timeline Stream'),
+          myPersonalPosts.length === 0 ? [
+            e('div', { className: 'bg-white border rounded-2xl p-6 text-center text-xs text-neutral-400 font-medium' }, 'No content blocks dropped to your personal node channel yet.')
+          ] : myPersonalPosts.map(post => (
+            e('div', { key: post.id, className: 'bg-white border border-neutral-200/70 rounded-2xl p-4 shadow-3xs space-y-2' }, [
+              e('div', { className: 'flex justify-between items-center' }, [
+                e('span', { className: 'text-[10px] font-bold text-neutral-400' }, post.timestamp),
+                e('span', { className: 'text-[9px] font-black px-1.5 py-0.5 bg-neutral-950 text-white rounded uppercase' }, 'Personal Content')
+              ]),
+              e('p', { className: 'text-xs text-neutral-800 font-medium leading-relaxed' }, post.content),
+              e('div', { className: 'flex items-center text-[10px] text-neutral-400 font-bold pt-1 border-t border-neutral-50' }, [
+                e('span', null, `♥ ${post.likes} engagement marks`)
+              ])
+            ])
+          ))
+        ]),
+
+        e('button', { 
+          onClick: handleLogout, 
+          className: 'w-full bg-neutral-50 text-neutral-900 border border-neutral-200 font-black py-3.5 rounded-xl text-xs uppercase tracking-wide shadow-3xs active:scale-98 transition-transform' 
+        }, 'Log Out System Session')
+      ]),
+
+      // --- EDIT PROFILE CONFIGURATIONS INLINE SHEET MODAL OVERLAY ---
+      isEditProfileOpen && e('div', { className: 'fixed inset-0 bg-black/60 z-[999] flex items-end justify-center p-4 backdrop-blur-3xs' }, [
+        e('div', { className: 'bg-white w-full rounded-t-3xl p-6 space-y-4 max-w-md border border-neutral-200 shadow-2xl animate-slide-up' }, [
+          e('div', { className: 'flex justify-between items-center border-b pb-2' }, [
+            e('h3', { className: 'font-black text-sm uppercase text-neutral-950' }, 'Modify Profile Parameters'),
+            e('button', { onClick: () => setIsEditProfileOpen(false), className: 'text-neutral-400 font-black' }, '✕')
+          ]),
+          e('div', { className: 'space-y-3 text-xs overflow-y-auto max-h-[60vh] pr-1' }, [
+            e('div', { className: 'space-y-1' }, [
+              e('label', { className: 'font-black text-neutral-400 uppercase text-[9px]' }, 'Full Profile Name'),
+              e('input', { type: 'text', value: fullName, onChange: e => setFullName(e.target.value), className: 'w-full px-3 py-2.5 bg-[#F8F8FA] border rounded-xl font-medium' })
+            ]),
+            e('div', { className: 'space-y-1' }, [
+              e('label', { className: 'font-black text-neutral-400 uppercase text-[9px]' }, 'Gender Identity Parameters'),
+              e('input', { type: 'text', value: profileGender, onChange: e => setProfileGender(e.target.value), className: 'w-full px-3 py-2.5 bg-[#F8F8FA] border rounded-xl font-medium' })
+            ]),
+            e('div', { className: 'space-y-1' }, [
+              e('label', { className: 'font-black text-neutral-400 uppercase text-[9px]' }, 'Lifestyle Designation'),
+              e('input', { type: 'text', value: profileLifestyle, onChange: e => setProfileLifestyle(e.target.value), className: 'w-full px-3 py-2.5 bg-[#F8F8FA] border rounded-xl font-medium' })
+            ]),
+            e('div', { className: 'space-y-1' }, [
+              e('label', { className: 'font-black text-neutral-400 uppercase text-[9px]' }, 'Domain Expertise Service / Skill Attribute'),
+              e('input', { type: 'text', value: profileService, onChange: e => setProfileService(e.target.value), className: 'w-full px-3 py-2.5 bg-[#F8F8FA] border rounded-xl font-medium' })
+            ]),
+            e('div', { className: 'space-y-1' }, [
+              e('label', { className: 'font-black text-neutral-400 uppercase text-[9px]' }, 'Social Preferences Model Mapping'),
+              e('textarea', { rows: '2', value: profilePreferences, onChange: e => setProfilePreferences(e.target.value), className: 'w-full px-3 py-2.5 bg-[#F8F8FA] border rounded-xl font-medium resize-none' })
+            ])
+          ]),
+          e('button', { 
+            onClick: () => setIsEditProfileOpen(false), 
+            className: 'w-full bg-[#121212] text-white font-black py-3.5 rounded-xl text-xs uppercase tracking-wider active:scale-98 transition-transform' 
+          }, 'Commit Saved Updates')
+        ])
+      ]),
+
+      // --- NEW POST COMPOSER DRAWER OVERLAY ---
+      isCreatePostOpen && e('div', { className: 'fixed inset-0 bg-black/60 z-[999] flex items-end justify-center p-4 backdrop-blur-3xs' }, [
+        e('div', { className: 'bg-white w-full rounded-t-3xl p-6 space-y-4 max-w-md border border-neutral-200' }, [
+          e('div', { className: 'flex justify-between items-center' }, [
+            e('h3', { className: 'font-black text-sm uppercase' }, 'Publish Personal Asset Block'),
+            e('button', { onClick: () => setIsCreatePostOpen(false), className: 'text-neutral-400 font-black' }, '✕')
+          ]),
+          e('textarea', { 
+            rows: '4', 
+            value: newPostContent,
+            onChange: e => setNewPostContent(e.target.value),
+            placeholder: 'What design framework breakthroughs or workflow assets are we updating today?...', 
+            className: 'w-full px-4 py-3 bg-[#F8F8FA] border rounded-xl text-xs font-medium focus:outline-none focus:border-neutral-950 resize-none' 
+          }),
+          e('button', { 
+            onClick: handlePublishPost, 
+            className: 'w-full bg-[#121212] text-white font-black py-3.5 rounded-xl text-xs uppercase tracking-wider' 
+          }, 'Publish Content Instance')
+        ])
+      ])
+    ]);
+  };
 
   const renderMonetizationTab = () => e('div', { className: 'animate-fade-in' }, [
     e('div', { className: 'bg-[#121212] text-white px-5 pt-8 pb-6 rounded-b-[24px] relative bg-gradient-to-b from-neutral-900 to-black shadow-lg' }, [
@@ -376,7 +679,7 @@ function App() {
   }
 
   if (currentPage === 'dashboard') {
-    return e('div', { className: 'min-h-screen bg-[#F4F4F6] text-[#121212] max-w-md mx-auto relative pb-24 font-sans flex flex-col justify-between overflow-x-hidden' }, [
+    return e('div', { className: 'min-h-screen bg-[#F4F4F6] text-[#121212] max-w-md mx-auto relative pb-24 font-sans flex flex-col justify-between overflow-x-hidden shadow-xl' }, [
       e('div', { className: 'flex-1 w-full overflow-y-auto' }, [
         creatorTab === 'home' && renderHomeTab(),
         creatorTab === 'search' && renderSearchTab(),
@@ -434,10 +737,13 @@ function App() {
           ])
         }
       ].map(tab => {
-        const isCurrent = creatorTab === tab.id || (tab.id === 'my_profile' && creatorTab === 'my_profile');
+        const isCurrent = creatorTab === tab.id;
         return e('button', {
           key: tab.id,
-          onClick: () => setCreatorTab(tab.id),
+          onClick: () => {
+            setCreatorTab(tab.id);
+            if (tab.id !== 'chats') setActiveChatId(null);
+          },
           className: 'flex flex-col items-center justify-center py-0.5 rounded-xl transition-all relative ' + (isCurrent ? 'text-black scale-105 font-black' : 'text-neutral-400 font-medium')
         }, [
           e('div', { className: 'transition-all', style: { color: isCurrent ? '#000000' : '#A3A3A3' } }, tab.svg),
@@ -519,7 +825,7 @@ function App() {
     ]);
   }
 
-  return e('div', { className: 'min-h-screen bg-[#121212] text-white max-w-md mx-auto flex flex-col justify-between p-6 shadow-md' }, [
+  return e('div', { className: 'min-h-screen bg-[#121212] text-white max-w-md mx-auto flex flex-col justify-between p-6 shadow-xl' }, [
     e('div', { className: 'flex-1 flex flex-col justify-center items-center text-center space-y-4' }, [e('div', { className: 'w-14 h-14 bg-white text-[#121212] rounded-2xl flex items-center justify-center font-black text-2xl' }, 'F'), e('h1', { className: 'text-3xl font-black tracking-tight' }, 'FATSOCIAL'), e('p', { className: 'text-xs text-gray-400 max-w-xs' }, 'Connect directly with premium elite skills marketplaces.')]),
     e('div', { className: 'space-y-3 pb-6' }, [e('button', { onClick: () => navigateTo('choose_track'), className: 'w-full bg-white text-[#121212] font-bold py-4 rounded-xl text-sm' }, 'Create Account'), e('button', { onClick: () => navigateTo('signin'), className: 'w-full bg-transparent border border-white/20 font-bold py-4 rounded-xl text-sm text-white' }, 'Sign In Account')])
   ]);
