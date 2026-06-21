@@ -1,31 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FATSOCIAL Platform</title>
-    <!-- CSS Layout Engine -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React Core Engines -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-    <style>
-        /* Smooth custom styling for mobile viewports */
-        .scrollbar-none::-webkit-scrollbar { display: none; }
-        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
-        body { -webkit-tap-highlight-color: transparent; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
+  <meta name="theme-color" content="#121212" />
+  <title>FATSOCIAL</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #f4f4f6;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    #root {
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    .scrollbar-none::-webkit-scrollbar {
+      display: none;
+    }
+
+    .scrollbar-none {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    body {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 0.25s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .animate-slide-up {
+      animation: slideUp 0.25s ease;
+    }
+  </style>
 </head>
-<body class="bg-[#F8F8FA] font-sans antialiased">
 
-    <!-- App Entry Point Container -->
-    <div id="root"></div>
+<body>
+  <div id="root">
+    <div style="
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+      font-weight:bold;
+      font-size:24px;
+      background:#121212;
+      color:white;
+    ">
+      FATSOCIAL Loading...
+    </div>
+  </div>
 
-    <!-- Ionicons Pack Component Loader -->
-    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+  <!-- Icons -->
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 
-    <!-- Connect Core System Script -->
-    <script src="main.js"></script>
+  <!-- Main App -->
+  <script src="main.js"></script>
 </body>
 </html>
